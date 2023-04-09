@@ -5,6 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/components/navigation/sidenav.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
+import 'package:plenty_cms/views/auth/forms/register.dart';
+
+import 'forms/login.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({super.key, this.resetToken});
@@ -16,25 +19,9 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  TextEditingController email = TextEditingController();
-
-  TextEditingController password = TextEditingController();
-
-  TextEditingController firstName = TextEditingController();
-
-  TextEditingController lastName = TextEditingController();
-
-  TextEditingController regEmail = TextEditingController();
-
-  TextEditingController regPassword = TextEditingController();
-
-  TextEditingController gender = TextEditingController();
-
-  String selectedGender = "";
-
   TextEditingController resetPasswordController = TextEditingController();
 
-  late final PageController? pageViewController;
+  late final PageController pageViewController;
 
   String? resetToken;
 
@@ -76,7 +63,15 @@ class _LoginPageState extends State<LoginPage> {
   PageView pageView(BuildContext context) {
     return PageView(
       controller: pageViewController,
-      children: [login(context), register(context), forgottenPassword(context)],
+      children: [
+        LoginForm(
+          pageViewController: pageViewController,
+        ),
+        RegisterForm(
+          pageViewController: pageViewController,
+        ),
+        forgottenPassword(context)
+      ],
     );
   }
 
@@ -88,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
         width: maxWidth,
         child: Column(
           children: [
-            Text("You will receive an email with a reset link"),
+            const Text("You will receive an email with a reset link"),
             TextField(
               controller: resetPasswordController,
             ),
@@ -99,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                    onPressed: () => pageViewController?.jumpToPage(0),
+                    onPressed: () => pageViewController.jumpToPage(0),
                     child: Row(
                       children: const [
                         Padding(
@@ -117,9 +112,9 @@ class _LoginPageState extends State<LoginPage> {
                       context
                           .read<AuthCubit>()
                           .resetPassword(resetPasswordController.text);
-                      pageViewController?.jumpToPage(0);
+                      pageViewController.jumpToPage(0);
                     },
-                    child: Text("Send")),
+                    child: const Text("Send")),
               ],
             )
           ],
@@ -139,127 +134,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Column login(BuildContext context) {
-    return Column(
-      children: [
-        SizedBox(
-          width: 300,
-          child: TextField(
-            controller: email,
-            decoration: const InputDecoration(labelText: "Email"),
-          ),
-        ),
-        SizedBox(
-          width: 300,
-          child: TextField(
-            controller: password,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: "Password"),
-          ),
-        ),
-        const SizedBox(
-          height: 20,
-        ),
-        TextButton(
-            onPressed: () {
-              context.read<AuthCubit>().login(email.text, password.text);
-            },
-            child: const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text("Submit"),
-            )),
-        Container(
-          height: 80,
-        ),
-        SizedBox(
-          width: 300,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Trouble logging in?"),
-              TextButton(
-                  onPressed: () => pageViewController?.jumpToPage(2),
-                  child: Text("Forgotten password"))
-            ],
-          ),
-        ),
-        const SizedBox(
-          width: 300,
-          child: Divider(
-            color: Color.fromARGB(80, 128, 128, 128),
-            height: 60,
-          ),
-        ),
-        TextButton(
-            onPressed: () => pageViewController?.jumpToPage(1),
-            child: Text("Create an account"))
-      ],
-    );
-  }
-
-  Column register(BuildContext context) {
-    var fields = [
-      {"First Name", firstName},
-      {"Last Name", lastName},
-      {"Email", regEmail}
-    ];
-    return Column(
-      children: [
-        ...fields.map((f) => SizedBox(
-              width: 300,
-              child: TextField(
-                controller: f.elementAt(1) as TextEditingController,
-                decoration: InputDecoration(label: Text(f.first as String)),
-              ),
-            )),
-        SizedBox(
-          width: 300,
-          child: TextField(
-            obscureText: true,
-            controller: regPassword,
-            decoration: const InputDecoration(label: Text("Password")),
-          ),
-        ),
-        DropdownMenu(
-          onSelected: (value) => selectedGender = value.toString(),
-          dropdownMenuEntries: const [
-            DropdownMenuEntry(value: "foobar", label: "Female"),
-            DropdownMenuEntry(value: "barbaz", label: "Male"),
-          ],
-          hintText: "Gender",
-        ),
-        TextButton(
-            onPressed: () {
-              context.read<AuthCubit>().register(
-                  firstName: firstName.text,
-                  lastName: lastName.text,
-                  email: regEmail.text,
-                  gender: selectedGender,
-                  password: regPassword.text,
-                  onError: () {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text("Invalid Form data"),
-                      backgroundColor: Colors.orange,
-                    ));
-                  },
-                  onSuccess: () => pageViewController?.jumpToPage(0));
-            },
-            child: const Text("Submit")),
-        Container(
-          height: 40,
-        ),
-        Row(
-          children: [
-            Text("Already have an account?"),
-            TextButton(
-                onPressed: () => pageViewController?.jumpTo(0),
-                child: Text("Login"))
-          ],
-        ),
-      ],
-    );
-  }
-
   Center resetPassword(BuildContext context) {
     double maxWidth = min(MediaQuery.of(context).size.width, 400);
 
@@ -268,16 +142,16 @@ class _LoginPageState extends State<LoginPage> {
         width: maxWidth,
         child: Column(children: [
           Container(height: 20),
-          Text(
+          const Text(
             "Reset Password",
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           Container(height: 20),
-          TextField(
+          const TextField(
             decoration: InputDecoration(hintText: "Password"),
             obscureText: true,
           ),
-          TextField(
+          const TextField(
             decoration: InputDecoration(hintText: "Repeat Password"),
             obscureText: true,
           ),

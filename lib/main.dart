@@ -11,6 +11,8 @@ import 'views/auth/login_page.dart';
 import 'views/home/home_page.dart';
 import 'package:url_strategy/url_strategy.dart';
 
+var publicLocations = ['/login', '/reset-password'];
+
 void main() {
   setPathUrlStrategy();
   runApp(const MyApp());
@@ -23,6 +25,21 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var routes = GoRouter(
+      redirect: (context, state) {
+        var auth = context.read<AuthCubit>();
+
+        print(">> ${state.location}");
+
+        var isKnownPublicRoute = publicLocations.firstWhere(
+            (element) => state.location.startsWith(element),
+            orElse: () => '');
+
+        if (auth.state.isLoggedIn || isKnownPublicRoute != '') {
+          return null;
+        }
+
+        return '/login';
+      },
       routes: [
         GoRoute(
           path: '/',
@@ -35,6 +52,7 @@ class MyApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/reset-password/:token',
+          name: 'reset-password',
           builder: (context, state) =>
               LoginPage(resetToken: state.params['token']),
         ),
