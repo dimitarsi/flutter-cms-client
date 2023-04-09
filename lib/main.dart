@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:plenty_cms/state/auth_cubit.dart';
+import 'package:plenty_cms/state/todos_cubit.dart';
 import 'package:plenty_cms/views/error/error_page.dart';
+import 'package:plenty_cms/views/pages/page.dart';
+import 'package:plenty_cms/views/todos/todo_page.dart';
 
 import 'views/auth/login_page.dart';
 import 'views/home/home_page.dart';
@@ -25,16 +30,44 @@ class MyApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/login',
+          name: 'login',
           builder: (context, state) => LoginPage(),
         ),
+        GoRoute(
+          path: '/reset-password/:token',
+          builder: (context, state) =>
+              LoginPage(resetToken: state.params['token']),
+        ),
+        GoRoute(path: '/todos', builder: (context, state) => TodosPage()),
+        GoRoute(
+            path: '/pages/:slug',
+            builder: (context, state) {
+              return PagesPage(
+                // key: state.pageKey,
+                slug: state.params['slug'] ?? 'default',
+              );
+            })
       ],
-      errorBuilder: (context, state) => ErrorPage(),
+      // errorBuilder: (context, state,) {
+      //   print(state.);
+      //   return ErrorPage();
+      // },
     );
 
-    return MaterialApp.router(
+    return createProvider(MaterialApp.router(
       routerConfig: routes,
       title: 'Flutter Demo',
       theme: ThemeData(primarySwatch: Colors.blue),
+    ));
+  }
+
+  createProvider(Widget child) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>(create: (_) => AuthCubit(AuthState())),
+        BlocProvider<TodosCubit>(create: (_) => TodosCubit([]))
+      ],
+      child: child,
     );
   }
 }
