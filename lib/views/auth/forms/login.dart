@@ -33,15 +33,18 @@ class LoginForm extends StatelessWidget {
         const SizedBox(
           height: 20,
         ),
-        TextButton(
-            onPressed: () {
-              // context.read<AuthCubit>().login(email.text, password.text);
-              context.read<AuthCubit>().login(email.text, password.text);
-            },
-            child: const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text("Submit"),
-            )),
+        SizedBox(
+          width: 300,
+          child: ElevatedButton(
+              onPressed: () {
+                // context.read<AuthCubit>().login(email.text, password.text);
+                context.read<AuthCubit>().login(email.text, password.text);
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 15),
+                child: Text("Submit"),
+              )),
+        ),
         Container(
           height: 80,
         ),
