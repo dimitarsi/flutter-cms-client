@@ -81,7 +81,7 @@ class RegisterForm extends StatelessWidget {
           children: [
             const Text("Already have an account?"),
             TextButton(
-                onPressed: () => pageViewController?.jumpTo(0),
+                onPressed: () => pageViewController.jumpTo(0),
                 child: const Text("Login"))
           ],
         ),
