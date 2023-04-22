@@ -5,7 +5,9 @@ import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:plenty_cms/state/todos_cubit.dart';
 import 'package:plenty_cms/views/error/error_page.dart';
 import 'package:plenty_cms/views/pages/page.dart';
+import 'package:plenty_cms/views/story_config/story_config_list.dart';
 import 'package:plenty_cms/views/todos/todo_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'views/auth/login_page.dart';
 import 'views/home/home_page.dart';
@@ -17,11 +19,19 @@ var publicLocations = ['/login', '/reset-password', '/story-configs'];
 
 void main() {
   setPathUrlStrategy();
-  runApp(const MyApp());
+  SharedPreferences.getInstance()
+      .then(
+        (value) => runApp(MyApp(
+          token: value.getString("authToken"),
+        )),
+      )
+      .catchError(() => runApp(MyApp()));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key, this.token});
+
+  String? token;
 
   // This widget is the root of your application.
   @override
@@ -67,6 +77,7 @@ class MyApp extends StatelessWidget {
             }),
         GoRoute(
             path: '/story-configs',
+            builder: (context, state) => StoryConfigList()),
         GoRoute(
             path: '/story-configs/:id',
             builder: (context, state) =>
@@ -88,7 +99,9 @@ class MyApp extends StatelessWidget {
   createProvider(Widget child) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<AuthCubit>(create: (_) => AuthCubit(AuthState())),
+        BlocProvider<AuthCubit>(
+            create: (_) =>
+                AuthCubit(AuthState(token: token, isLoggedIn: token != null))),
         BlocProvider<TodosCubit>(create: (_) => TodosCubit([]))
       ],
       child: child,

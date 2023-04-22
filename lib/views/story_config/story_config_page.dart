@@ -6,11 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/components/navigation/sidenav.dart';
 import 'package:http/http.dart';
+import 'package:plenty_cms/state/auth_cubit.dart';
 
 class StoryConfigPage extends StatefulWidget {
-  StoryConfigPage({super.key});
+  StoryConfigPage({super.key, required this.id});
+
+  String id;
 
   @override
   State<StoryConfigPage> createState() => _StoryConfigPageState();
@@ -389,7 +394,8 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            TextButton(onPressed: () {}, child: const Text("Cancel")),
+            TextButton(
+                onPressed: () => context.pop(), child: const Text("Cancel")),
             GestureDetector(
               onTap: () {
                 if (nonEmptyConfigList.isEmpty) {
@@ -402,9 +408,17 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                 onPressed: nonEmptyConfigList.isEmpty
                     ? null
                     : () async {
+                        var auth = context.read<AuthCubit>();
+                        String token = "";
+
+                        if (auth.state.token != null) {
+                          token = auth.state.token!;
+                        } else {
+                          return;
+                        }
+
                         Map<String, String> headers = <String, String>{};
-                        headers["x-access-token"] =
-                            "365a7406-6e6d-4e60-ad6d-8550513cc62b";
+                        headers["x-access-token"] = token;
                         headers["content-type"] = "application/json";
 
                         var body = json.encode({

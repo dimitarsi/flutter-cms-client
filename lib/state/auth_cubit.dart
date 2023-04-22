@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthState {
   AuthState(
@@ -18,21 +19,23 @@ class AuthCubit extends Cubit<AuthState> {
 
   void login(String email, String password) async {
     // String body = "{\"email\": \"$email\",\"password\":\"$password\"}";
-    var data;
+    Response data;
     try {
       // var data = await post(Uri.parse("http://localhost:8000/login"),
       //     body: json.encode({"email": email, "password": password}).toString(),
       //     headers: {"content-type": "application/json"});
-
+      var storage = await SharedPreferences.getInstance();
       data = await post(Uri.parse("http://localhost:8000/login"),
           body: {"email": email, "password": password});
 
       if (data.statusCode < 300) {
-        print(data);
-        emit(AuthState(isLoggedIn: true));
+        var body = json.decode(data.body);
+
+        emit(AuthState(isLoggedIn: true, token: body["accessToken"]));
+        storage.setString("authToken", body["accessToken"]);
       }
     } catch (e) {
-      print([data, e.toString()]);
+      print(e.toString());
     }
   }
 
@@ -63,5 +66,9 @@ class AuthCubit extends Cubit<AuthState> {
     print("Email $email");
   }
 
-  void logout() => emit(AuthState());
+  void logout() async {
+    var storage = await SharedPreferences.getInstance();
+    storage.remove("authToken");
+    emit(AuthState());
+  }
 }
