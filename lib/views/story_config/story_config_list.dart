@@ -32,7 +32,7 @@ class StoryConfigList extends StatefulWidget {
 
 class _StoryConfigListState extends State<StoryConfigList> {
   int page = 1;
-  int pages = 7;
+  int pages = 0;
   bool loading = false;
   String token = "";
 
@@ -45,23 +45,17 @@ class _StoryConfigListState extends State<StoryConfigList> {
     var auth = context.read<AuthCubit>();
     token = auth.state.token ?? "";
 
-    // loadPage(page);
+    loadPage(page);
   }
 
   void loadPage(int nextPage) async {
-    // var token = context.read<AuthCubit>();
-
-    setState(() {
-      page = min(pages, max(1, nextPage));
-    });
-    return;
-
     var data = await get(
         Uri.parse("http://localhost:8000/story-configs?page=$nextPage"),
         headers: {"x-access-token": token});
 
     var body = jsonDecode(data.body);
-    if (body["error"] != null) {
+
+    if (body["error"] != null && mounted) {
       if (body["error"].toString().toLowerCase() == "unauthorized") {
         context.read<AuthCubit>().logout();
       }
@@ -76,8 +70,6 @@ class _StoryConfigListState extends State<StoryConfigList> {
               slug: e['slug'] ?? "invalid"));
 
           pages = body["pagination"]["totalPage"] ?? 0;
-
-          print("Pages $pages");
         } catch (_e) {
           print("error - $_e");
         }
