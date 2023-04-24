@@ -79,9 +79,9 @@ class MyApp extends StatelessWidget {
             path: '/story-configs',
             builder: (context, state) => StoryConfigList()),
         GoRoute(
-            path: '/story-configs/:id',
+            path: '/story-configs/:slug',
             builder: (context, state) =>
-                StoryConfigPage(id: state.params['id'] ?? 'create'))
+                StoryConfigPage(slug: state.params['slug'] ?? ''))
       ],
       // errorBuilder: (context, state,) {
       //   print(state.);

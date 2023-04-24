@@ -11,11 +11,12 @@ import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/components/navigation/sidenav.dart';
 import 'package:http/http.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
+import 'package:plenty_cms/views/story_config/story_config_list.dart';
 
 class StoryConfigPage extends StatefulWidget {
-  StoryConfigPage({super.key, required this.id});
+  StoryConfigPage({super.key, required this.slug});
 
-  String id;
+  String slug;
 
   @override
   State<StoryConfigPage> createState() => _StoryConfigPageState();
@@ -76,6 +77,9 @@ class GroupConfig {
     if (label.isEmpty) {
       label = displayName.replaceAll(RegExp(r'\s+'), "_").toLowerCase();
     }
+
+    controller =
+        TextEditingController.fromValue(TextEditingValue(text: displayName));
   }
 
   String label;
@@ -83,6 +87,7 @@ class GroupConfig {
   String type;
   String width;
   String value;
+  late TextEditingController controller;
   final int _uniqId = Random.secure().nextInt(999);
   final int _uniqIdAgain = Random.secure().nextInt(999);
 
@@ -101,8 +106,64 @@ class GroupConfig {
   }
 }
 
+class StoryConfig {
+  StoryConfig({required this.name, required this.slug});
+
+  String name;
+  String slug;
+
+  StoryConfig.fromJson(Map<String, dynamic> data)
+      : name = data['displayName'],
+        slug = data['slug'];
+
+  Map<String, dynamic> toJson() => {"displayName": name, "slug": slug};
+}
+
 class _StoryConfigPageState extends State<StoryConfigPage> {
   List<GroupConfig> groupConfigList = [];
+  List<StoryConfig> storyConfig = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    var token = context.read<AuthCubit>().state.token ?? "";
+    var headers = {"x-access-token": token};
+
+    get(Uri.parse("http://localhost:8000/story-configs/"), headers: headers)
+        .then((result) {
+      var body = jsonDecode(result.body);
+      setState(() {
+        List<StoryConfig> items = [];
+
+        for (var item in body["items"]) {
+          if (item["name"] == null || item["slug"] == null) {
+            continue;
+          }
+          storyConfig.add(StoryConfig(name: item["name"], slug: item["slug"]));
+        }
+      });
+    }).catchError((err) => print(err));
+
+    get(Uri.parse("http://localhost:8000/story-configs/${widget.slug}"),
+            headers: headers)
+        .then((response) {
+      var body = jsonDecode(response.body);
+
+      setState(() {
+        groupConfigList.clear();
+        groupNameController.value = TextEditingValue(text: body["name"]);
+        var fields = (body["fields"] as List<dynamic>)
+            .map((f) => GroupConfig(
+                displayName: f["displayName"],
+                type: f["type"],
+                width: f["width"]))
+            .toList();
+
+        groupConfigList.addAll(fields);
+      });
+    }).catchError((err) => print(err));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,8 +230,6 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   }
 
   Widget fileds() {
-    // var fields = ['Group Name', 'Type', 'Width'];
-
     List<Widget> fieldsList = [];
 
     const fieldName = InputDecoration(labelText: "Field Name");
@@ -178,7 +237,6 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     ButtonStyle bs = ElevatedButton.styleFrom(
         padding: EdgeInsets.all(3), minimumSize: Size(30, 30));
 
-    var index = 0;
     for (var element in groupConfigList) {
       fieldsList.add(Row(
         key: Key(element.hashCode.toString()),
@@ -209,6 +267,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                           children: [
                             TextField(
                               decoration: fieldName,
+                              controller: element.controller,
                               onChanged: (value) => setState(() {
                                 element.displayName = value.toString();
                                 element.label = value
@@ -297,7 +356,6 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
           )
         ],
       ));
-      index += 1;
     }
 
     return Column(
@@ -395,7 +453,14 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TextButton(
-                onPressed: () => context.pop(), child: const Text("Cancel")),
+                onPressed: () {
+                  if (GoRouter.of(context).canPop()) {
+                    GoRouter.of(context).pop();
+                  } else {
+                    context.go('/story-configs');
+                  }
+                },
+                child: const Text("Cancel")),
             GestureDetector(
               onTap: () {
                 if (nonEmptyConfigList.isEmpty) {
@@ -425,15 +490,26 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                           "name": groupNameController.text,
                           "fields": groupConfigList,
                           "slug": groupNameController.text
+                              .replaceAll(
+                                  RegExp(r'[\!\?&@\.,:*\(\)\[\]^%$/\\#~<>|}{]'),
+                                  '')
                               .replaceAll(RegExp(r'\s+'), '_')
                               .toLowerCase()
                         });
 
-                        post(Uri.parse("http://localhost:8000/story-configs"),
-                            headers: headers, body: body);
+                        if (widget.slug.isEmpty) {
+                          post(Uri.parse("http://localhost:8000/story-configs"),
+                              headers: headers, body: body);
+                        } else {
+                          patch(
+                              Uri.parse(
+                                  "http://localhost:8000/story-configs/${widget.slug}"),
+                              headers: headers,
+                              body: body);
+                        }
                       },
                 style: buttoStyle,
-                child: const Text("Create"),
+                child: Text(widget.slug.isEmpty ? "Create" : "Update"),
               ),
             )
           ],
@@ -442,19 +518,24 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     );
   }
 
+  String? referenceListValue;
+
   List<Widget> referenceFields(GroupConfig element) {
+    List<DropdownMenuItem<String>> items = storyConfig.map((e) {
+      print("${e.name} ${e.slug}");
+      return DropdownMenuItem<String>(child: Text(e.name), value: e.slug);
+    }).toList();
     return [
       Expanded(
         flex: 1,
-        child: DropdownButton(
-          items: [
-            DropdownMenuItem(
-              child: Text("Content Type Mock 01"),
-              value: 1,
-            ),
-            DropdownMenuItem(child: Text("Content Type Mock 02"), value: 2)
-          ],
-          onChanged: (Object? value) {},
+        child: DropdownButton<String>(
+          items: items,
+          value: referenceListValue,
+          onChanged: (Object? value) {
+            setState(() {
+              referenceListValue = value.toString();
+            });
+          },
         ),
       ),
       SizedBox(
