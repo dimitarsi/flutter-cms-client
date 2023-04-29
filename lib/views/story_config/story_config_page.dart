@@ -457,7 +457,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                   if (GoRouter.of(context).canPop()) {
                     GoRouter.of(context).pop();
                   } else {
-                    context.go('/story-configs');
+                    context.go('/story-config-list');
                   }
                 },
                 child: const Text("Cancel")),

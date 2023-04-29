@@ -5,6 +5,8 @@ import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:plenty_cms/state/todos_cubit.dart';
 import 'package:plenty_cms/views/error/error_page.dart';
 import 'package:plenty_cms/views/pages/page.dart';
+import 'package:plenty_cms/views/story/list.dart';
+import 'package:plenty_cms/views/story/page.dart';
 import 'package:plenty_cms/views/story_config/story_config_list.dart';
 import 'package:plenty_cms/views/todos/todo_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,7 +17,7 @@ import 'package:url_strategy/url_strategy.dart';
 
 import 'views/story_config/story_config_page.dart';
 
-var publicLocations = ['/login', '/reset-password', '/story-configs'];
+var publicLocations = ['/login', '/reset-password'];
 
 void main() {
   setPathUrlStrategy();
@@ -76,12 +78,25 @@ class MyApp extends StatelessWidget {
               );
             }),
         GoRoute(
-            path: '/story-configs',
+            path: '/story-config-list',
             builder: (context, state) => StoryConfigList()),
         GoRoute(
             path: '/story-configs/:slug',
             builder: (context, state) =>
-                StoryConfigPage(slug: state.params['slug'] ?? ''))
+                StoryConfigPage(slug: state.params['slug'] ?? '')),
+        GoRoute(
+            path: '/story-configs',
+            builder: (context, state) => StoryConfigPage(slug: '')),
+        GoRoute(
+          path: '/story-list',
+          builder: (context, state) => StoryList(),
+        ),
+        GoRoute(
+            path: '/story', builder: (context, state) => StoryListScaffold()),
+        GoRoute(
+            path: '/story/:slug',
+            builder: (context, state) =>
+                StoryPageScaffold(slug: state.params['slug'] ?? ''))
       ],
       // errorBuilder: (context, state,) {
       //   print(state.);
