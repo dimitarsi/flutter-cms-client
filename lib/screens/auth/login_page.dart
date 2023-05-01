@@ -6,9 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 import 'package:plenty_cms/service/models/user_auth.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
-import 'package:plenty_cms/screens/auth/forms/register.dart';
+import 'package:plenty_cms/widgets/login/forms/register.dart';
 
-import 'forms/login.dart';
+import 'package:plenty_cms/widgets/login/forms/login.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({super.key, this.resetToken});
