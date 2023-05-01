@@ -4,19 +4,19 @@ import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:plenty_cms/state/todos_cubit.dart';
-import 'package:plenty_cms/views/error/error_page.dart';
-import 'package:plenty_cms/views/pages/page.dart';
-import 'package:plenty_cms/views/story/list.dart';
-import 'package:plenty_cms/views/story/page.dart';
-import 'package:plenty_cms/views/story_config/story_config_list.dart';
-import 'package:plenty_cms/views/todos/todo_page.dart';
+import 'package:plenty_cms/screens/error/error_page.dart';
+import 'package:plenty_cms/screens/pages/page.dart';
+import 'package:plenty_cms/screens/story/list.dart';
+import 'package:plenty_cms/screens/story/page.dart';
+import 'package:plenty_cms/screens/story_config/story_config_list.dart';
+import 'package:plenty_cms/screens/todos/todo_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'views/auth/login_page.dart';
-import 'views/home/home_page.dart';
+import 'screens/auth/login_page.dart';
+import 'screens/home/home_page.dart';
 import 'package:url_strategy/url_strategy.dart';
 
-import 'views/story_config/story_config_page.dart';
+import 'screens/story_config/story_config_page.dart';
 
 var publicLocations = ['/login', '/reset-password'];
 

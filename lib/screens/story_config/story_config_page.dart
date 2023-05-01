@@ -11,7 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/components/navigation/sidenav.dart';
 import 'package:http/http.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
-import 'package:plenty_cms/views/story_config/story_config_list.dart';
+import 'package:plenty_cms/screens/story_config/story_config_list.dart';
 
 class StoryConfigPage extends StatefulWidget {
   StoryConfigPage({super.key, required this.slug});

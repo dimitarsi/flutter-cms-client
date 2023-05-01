@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/components/navigation/sidenav.dart';
 import 'package:plenty_cms/models/user_auth.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
-import 'package:plenty_cms/views/auth/forms/register.dart';
+import 'package:plenty_cms/screens/auth/forms/register.dart';
 
 import 'forms/login.dart';
 
