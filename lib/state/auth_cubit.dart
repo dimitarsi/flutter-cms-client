@@ -1,41 +1,75 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart';
+import 'package:plenty_cms/models/user_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../service/client/client.dart';
 
 class AuthState {
   AuthState(
-      {this.isLoggedIn = false, this.token, this.firstName, this.lastName});
+      {this.isLoggedIn = false,
+      this.token,
+      this.firstName,
+      this.lastName,
+      this.loginError});
 
   bool isLoggedIn;
   String? token;
   String? firstName;
   String? lastName;
+
+  String? loginError;
 }
 
+const timeout = Duration(seconds: 5);
+const lockTimeout = Duration(seconds: 1);
+
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit(AuthState initialState) : super(initialState);
+  AuthCubit(AuthState initialState, {required this.restClient})
+      : super(initialState);
 
-  void login(String email, String password) async {
-    // String body = "{\"email\": \"$email\",\"password\":\"$password\"}";
-    Response data;
+  RestClient restClient;
+
+  Timer? timer;
+
+  bool loginLock = false;
+
+  void login(UserCredentials credentials) async {
+    var storage = await SharedPreferences.getInstance();
+
+    if (loginLock) {
+      return;
+    }
+
+    if (timer != null) {
+      timer!.cancel();
+      timer = null;
+    }
+
     try {
-      // var data = await post(Uri.parse("http://localhost:8000/login"),
-      //     body: json.encode({"email": email, "password": password}).toString(),
-      //     headers: {"content-type": "application/json"});
-      var storage = await SharedPreferences.getInstance();
-      data = await post(Uri.parse("http://localhost:8000/login"),
-          body: {"email": email, "password": password});
+      loginLock = true;
+      var data = await restClient.tryLogin(credentials);
+      var token = data.token ?? "";
 
-      if (data.statusCode < 300) {
-        var body = json.decode(data.body);
+      if (!data.isLoggedIn) {
+        emit(AuthState(
+            isLoggedIn: data.isLoggedIn,
+            loginError: "Invalid credentials. Please Try Again"));
 
-        emit(AuthState(isLoggedIn: true, token: body["accessToken"]));
-        storage.setString("authToken", body["accessToken"]);
+        timer = Timer(timeout, () => emit(AuthState()));
+      } else if (token.isNotEmpty) {
+        emit(AuthState(isLoggedIn: data.isLoggedIn, token: token));
+        storage.setString("authToken", token);
       }
     } catch (e) {
-      print(e.toString());
+      emit(
+          AuthState(loginError: "Ups, something went wrong. Try again later!"));
+      Timer(timeout, () => emit(AuthState()));
+    } finally {
+      Timer(lockTimeout, () => loginLock = false);
     }
   }
 

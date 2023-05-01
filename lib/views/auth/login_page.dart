@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/components/navigation/sidenav.dart';
+import 'package:plenty_cms/models/user_auth.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:plenty_cms/views/auth/forms/register.dart';
 
@@ -12,10 +13,13 @@ import 'forms/login.dart';
 class LoginPage extends StatefulWidget {
   LoginPage({super.key, this.resetToken});
 
-  String? resetToken;
+  final String? resetToken;
+  final LoginFormController form = LoginFormController();
+  final GlobalKey<FormState> loginFormKey =
+      GlobalKey(debugLabel: "Login Form Key");
 
   @override
-  State<LoginPage> createState() => _LoginPageState(resetToken: resetToken);
+  State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -23,11 +27,7 @@ class _LoginPageState extends State<LoginPage> {
 
   late final PageController pageViewController;
 
-  String? resetToken;
-
   String? errorMessage;
-
-  _LoginPageState({this.resetToken}) : super();
 
   @override
   void initState() {
@@ -44,38 +44,44 @@ class _LoginPageState extends State<LoginPage> {
           automaticallyImplyLeading: true,
         ),
         body: BlocBuilder<AuthCubit, AuthState>(
-          builder: (context, state) => page(context, state.isLoggedIn),
+          builder: page,
         ));
   }
 
-  page(BuildContext context, bool isLoggedIn) {
-    if (resetToken != null) {
-      return resetPassword(context);
+  Widget page(BuildContext context, AuthState state) {
+    if (widget.resetToken != null) {
+      return resetPassword();
     }
 
+    var isLoggedIn = state.isLoggedIn;
+    var errorMessage = state.loginError ?? "";
+
     return isLoggedIn
-        ? logout(context)
+        ? logout()
         : Container(
-            child: pageView(context),
+            child: pageView(context, errorMessage: errorMessage),
           );
   }
 
-  PageView pageView(BuildContext context) {
+  PageView pageView(BuildContext context, {required String errorMessage}) {
     return PageView(
       controller: pageViewController,
       children: [
-        LoginForm(
+        LoginFormView(
           pageViewController: pageViewController,
+          loginError: errorMessage,
+          form: widget.form,
+          loginFormKey: widget.loginFormKey,
         ),
         RegisterForm(
           pageViewController: pageViewController,
         ),
-        forgottenPassword(context)
+        forgottenPassword()
       ],
     );
   }
 
-  Center forgottenPassword(BuildContext context) {
+  Center forgottenPassword() {
     double maxWidth = min(MediaQuery.of(context).size.width, 400);
 
     return Center(
@@ -123,18 +129,24 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Column logout(BuildContext context) {
-    return Column(
-      children: [
-        const Text("You are logged in"),
-        TextButton(
-            onPressed: context.read<AuthCubit>().logout,
-            child: const Text("Log out"))
-      ],
+  Widget logout() {
+    return Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 50, bottom: 8),
+            child: Text("You are logged in"),
+          ),
+          TextButton(
+              onPressed: context.read<AuthCubit>().logout,
+              child: const Text("Log out"))
+        ],
+      ),
     );
   }
 
-  Center resetPassword(BuildContext context) {
+  Center resetPassword() {
     double maxWidth = min(MediaQuery.of(context).size.width, 400);
 
     return Center(

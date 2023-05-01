@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:plenty_cms/state/todos_cubit.dart';
 import 'package:plenty_cms/views/error/error_page.dart';
@@ -21,17 +22,24 @@ var publicLocations = ['/login', '/reset-password'];
 
 void main() {
   setPathUrlStrategy();
-  SharedPreferences.getInstance()
-      .then(
-        (value) => runApp(MyApp(
-          token: value.getString("authToken"),
-        )),
-      )
-      .catchError(() => runApp(MyApp()));
+
+  RestClient restClient = RestClient();
+
+  SharedPreferences.getInstance().then(
+    (value) {
+      restClient.token = value.getString("authToken") ?? "";
+      runApp(MyApp(
+        restClient: restClient,
+        token: value.getString("authToken"),
+      ));
+    },
+  ).catchError(() => runApp(MyApp(restClient: restClient)));
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key, this.token});
+  MyApp({super.key, this.token, required this.restClient});
+
+  RestClient restClient;
 
   String? token;
 
@@ -114,9 +122,11 @@ class MyApp extends StatelessWidget {
   createProvider(Widget child) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<AuthCubit>(
-            create: (_) =>
-                AuthCubit(AuthState(token: token, isLoggedIn: token != null))),
+        BlocProvider<AuthCubit>(create: (_) {
+          var state = AuthState(token: token, isLoggedIn: token != null);
+
+          return AuthCubit(state, restClient: restClient);
+        }),
         BlocProvider<TodosCubit>(create: (_) => TodosCubit([]))
       ],
       child: child,
