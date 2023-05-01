@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:plenty_cms/components/navigation/sidenav.dart';
+import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:plenty_cms/state/todos_cubit.dart';
 

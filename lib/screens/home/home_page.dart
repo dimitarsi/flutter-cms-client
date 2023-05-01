@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
-import 'package:plenty_cms/components/navigation/sidenav.dart';
+import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
