@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart';
-import 'package:plenty_cms/models/user_auth.dart';
+import 'package:plenty_cms/service/models/user_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../service/client/client.dart';

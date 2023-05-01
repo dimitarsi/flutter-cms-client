@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:plenty_cms/models/user_auth.dart';
+import 'package:plenty_cms/service/models/user_auth.dart';
 
 import '../../../state/auth_cubit.dart';
 
@@ -14,10 +14,10 @@ class LoginFormView extends StatelessWidget {
 
   final PageController? pageViewController;
 
-  String? loginError;
+  final String? loginError;
 
-  LoginFormController form;
-  GlobalKey<FormState> loginFormKey;
+  final LoginFormController form;
+  final GlobalKey<FormState> loginFormKey;
 
   @override
   Widget build(BuildContext context) {

@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:plenty_cms/service/data/rest_response.dart';
 
-import '../../models/story_config.dart';
-import '../../models/user_auth.dart';
+import '../models/story_config.dart';
+import '../models/user_auth.dart';
 import '../data/pagination.dart';
 
 const applicationJsonUtf8 = "application/json; charset=utf-8";
