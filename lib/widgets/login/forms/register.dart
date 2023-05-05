@@ -1,50 +1,36 @@
-
-
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:plenty_cms/widgets/login/forms/validation/is_email.dart';
+import 'package:plenty_cms/widgets/login/forms/validation/is_not_empty.dart';
 
 import '../../../state/auth_cubit.dart';
+import 'models/registration_form.dart';
 
 class RegisterForm extends StatelessWidget {
-  RegisterForm({super.key, required this.pageViewController});
-
-  TextEditingController firstName = TextEditingController();
-
-  TextEditingController lastName = TextEditingController();
-
-  TextEditingController regEmail = TextEditingController();
-
-  TextEditingController regPassword = TextEditingController();
-
-  TextEditingController gender = TextEditingController();
-
+  RegisterForm(
+      {super.key, required this.pageViewController, required this.model});
+  final RegistrationFormModel model;
   final PageController pageViewController;
 
   String selectedGender = "";
 
   @override
   Widget build(BuildContext context) {
-    var fields = [
-      {"First Name", firstName},
-      {"Last Name", lastName},
-      {"Email", regEmail}
-    ];
     return Column(
       children: [
-        ...fields.map((f) => SizedBox(
+        ...model.fields.map((f) => SizedBox(
               width: 300,
-              child: TextField(
-                controller: f.elementAt(1) as TextEditingController,
-                decoration: InputDecoration(label: Text(f.first as String)),
+              child: TextFormField(
+                controller: f.controller,
+                validator: f.validator,
+                decoration: InputDecoration(label: Text(f.label)),
               ),
             )),
         SizedBox(
           width: 300,
-          child: TextField(
+          child: TextFormField(
             obscureText: true,
-            controller: regPassword,
+            controller: model.regPassword,
             decoration: const InputDecoration(label: Text("Password")),
           ),
         ),
@@ -61,18 +47,18 @@ class RegisterForm extends StatelessWidget {
         TextButton(
             onPressed: () {
               context.read<AuthCubit>().register(
-                  firstName: firstName.text,
-                  lastName: lastName.text,
-                  email: regEmail.text,
+                  firstName: model.firstName.text,
+                  lastName: model.lastName.text,
+                  email: model.regEmail.text,
                   gender: selectedGender,
-                  password: regPassword.text,
+                  password: model.regPassword.text,
                   onError: () {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text("Invalid Form data"),
                       backgroundColor: Colors.orange,
                     ));
                   },
-                  onSuccess: () => pageViewController?.jumpToPage(0));
+                  onSuccess: () => pageViewController.jumpToPage(0));
             },
             child: const Text("Submit")),
         Container(

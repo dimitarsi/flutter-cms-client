@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:plenty_cms/service/models/user_auth.dart';
+import 'package:plenty_cms/widgets/login/forms/validation/is_email.dart';
+import 'package:plenty_cms/widgets/login/forms/validation/is_password.dart';
 
 import '../../../state/auth_cubit.dart';
 
 class LoginFormView extends StatelessWidget {
-  LoginFormView(
+  const LoginFormView(
       {super.key,
       this.pageViewController,
       this.loginError,
@@ -32,12 +34,7 @@ class LoginFormView extends StatelessWidget {
               width: 300,
               child: TextFormField(
                 controller: form.email,
-                validator: (value) {
-                  var isEmail = RegExp(r'\w@\w').allMatches(value ?? "");
-                  if (isEmail.isEmpty) {
-                    return "Invalid email address";
-                  }
-                },
+                validator: isEmailValidator,
                 decoration: const InputDecoration(labelText: "Email"),
               ),
             ),
@@ -49,11 +46,7 @@ class LoginFormView extends StatelessWidget {
                 controller: form.password,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: "Password"),
-                validator: (val) {
-                  if (val != null && val.length < 8) {
-                    return "Password needs to be at least 8 characters long";
-                  }
-                },
+                validator: isPasswordValidator,
               ),
             ),
           ),

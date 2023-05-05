@@ -10,6 +10,8 @@ import 'package:plenty_cms/widgets/login/forms/register.dart';
 
 import 'package:plenty_cms/widgets/login/forms/login.dart';
 
+import '../../widgets/login/forms/models/registration_form.dart';
+
 class LoginPage extends StatefulWidget {
   LoginPage({super.key, this.resetToken});
 
@@ -17,6 +19,7 @@ class LoginPage extends StatefulWidget {
   final LoginFormController form = LoginFormController();
   final GlobalKey<FormState> loginFormKey =
       GlobalKey(debugLabel: "Login Form Key");
+  final RegistrationFormModel registraionModel = RegistrationFormModel();
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -26,6 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController resetPasswordController = TextEditingController();
 
   late final PageController pageViewController;
+  late final RegistrationFormModel registraionModel;
 
   String? errorMessage;
 
@@ -34,6 +38,7 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
 
     pageViewController = PageController(initialPage: 0);
+    registraionModel = RegistrationFormModel();
   }
 
   @override
@@ -74,8 +79,7 @@ class _LoginPageState extends State<LoginPage> {
           loginFormKey: widget.loginFormKey,
         ),
         RegisterForm(
-          pageViewController: pageViewController,
-        ),
+            pageViewController: pageViewController, model: registraionModel),
         forgottenPassword()
       ],
     );
