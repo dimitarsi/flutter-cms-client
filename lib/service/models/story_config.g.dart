@@ -10,10 +10,9 @@ StoryConfigBase _$StoryConfigBaseFromJson(Map<String, dynamic> json) =>
     StoryConfigBase(
       name: json['name'] as String?,
       tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      storyFeatures: json['storyFeatures'] == null
+      features: json['features'] == null
           ? null
-          : StoryFeatures.fromJson(
-              json['storyFeatures'] as Map<String, dynamic>),
+          : StoryFeatures.fromJson(json['features'] as Map<String, dynamic>),
     )..fields = (json['fields'] as List<dynamic>?)
         ?.map((e) => Field.fromJson(e as Map<String, dynamic>))
         .toList();
@@ -22,7 +21,7 @@ Map<String, dynamic> _$StoryConfigBaseToJson(StoryConfigBase instance) =>
     <String, dynamic>{
       'name': instance.name,
       'tags': instance.tags,
-      'storyFeatures': instance.storyFeatures,
+      'features': instance.features,
       'fields': instance.fields,
     };
 
@@ -33,10 +32,9 @@ StoryConfigRequest _$StoryConfigRequestFromJson(Map<String, dynamic> json) =>
       ..name = json['name'] as String?
       ..tags =
           (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList()
-      ..storyFeatures = json['storyFeatures'] == null
+      ..features = json['features'] == null
           ? null
-          : StoryFeatures.fromJson(
-              json['storyFeatures'] as Map<String, dynamic>)
+          : StoryFeatures.fromJson(json['features'] as Map<String, dynamic>)
       ..fields = (json['fields'] as List<dynamic>?)
           ?.map((e) => Field.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -45,7 +43,7 @@ Map<String, dynamic> _$StoryConfigRequestToJson(StoryConfigRequest instance) =>
     <String, dynamic>{
       'name': instance.name,
       'tags': instance.tags,
-      'storyFeatures': instance.storyFeatures,
+      'features': instance.features,
       'fields': instance.fields,
       'slug': instance.slug,
     };
@@ -54,14 +52,13 @@ StoryConfigResponse _$StoryConfigResponseFromJson(Map<String, dynamic> json) =>
     StoryConfigResponse(
       slug: json['slug'] as String?,
       id: json['_id'] as String?,
+      name: json['name'] as String?,
     )
-      ..name = json['name'] as String?
       ..tags =
           (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList()
-      ..storyFeatures = json['storyFeatures'] == null
+      ..features = json['features'] == null
           ? null
-          : StoryFeatures.fromJson(
-              json['storyFeatures'] as Map<String, dynamic>)
+          : StoryFeatures.fromJson(json['features'] as Map<String, dynamic>)
       ..fields = (json['fields'] as List<dynamic>?)
           ?.map((e) => Field.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -71,7 +68,7 @@ Map<String, dynamic> _$StoryConfigResponseToJson(
     <String, dynamic>{
       'name': instance.name,
       'tags': instance.tags,
-      'storyFeatures': instance.storyFeatures,
+      'features': instance.features,
       'fields': instance.fields,
       'slug': instance.slug,
       '_id': instance.id,
@@ -120,11 +117,11 @@ Map<String, dynamic> _$FieldToJson(Field instance) => <String, dynamic>{
     };
 
 FieldRow _$FieldRowFromJson(Map<String, dynamic> json) => FieldRow(
-      label: json['label'] as String?,
-      displayName: json['displayName'] as String?,
-      type: json['type'] as String?,
       width: json['width'] as String?,
-    );
+    )
+      ..label = json['label'] as String?
+      ..displayName = json['displayName'] as String?
+      ..type = json['type'] as String?;
 
 Map<String, dynamic> _$FieldRowToJson(FieldRow instance) => <String, dynamic>{
       'label': instance.label,

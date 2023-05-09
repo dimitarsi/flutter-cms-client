@@ -41,20 +41,61 @@ class RestClient {
   Future<RestResponse<StoryConfigResponse>> listStoryConfigs(
       {int page = 1}) async {
     var listStoryConfigWithPage = Uri.parse("$storyConfigUrl?page=$page");
-    var response = await get(listStoryConfigWithPage, headers: authHeader);
-    var body = jsonDecode(response.body);
 
-    if (body["pagination"] == null || body["entities"] == null) {
+    var response = await get(listStoryConfigWithPage, headers: authHeader);
+    var body = jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (body["pagination"] == null || body["items"] == null) {
       return RestResponse(hasError: true);
     }
+    List<StoryConfigResponse> items = [];
 
-    var items = (body["entities"] as List<Map<String, dynamic>>).map(
-      (e) => StoryConfigResponse.fromJson(e),
-    );
+    try {
+      print(
+          ">> items is list ${body['items'] is List} and ${(body['items'] as List).length}");
+      if (body["items"] != null) {
+        print("body is a list");
+        var validItems = (body["items"]).where(
+            (element) => element['_id'] != null && element['slug'] != null);
+        // .map((e) => StoryConfigResponse.fromJson(e));
+        // print("after where");
+        for (var item in validItems.toList()) {
+          // print("add $item");
+          items.add(StoryConfigResponse.fromJson(item));
+          // items.add(StoryConfigResponse.fromJson({
+          //   '_id': '6442337d0e9d1aaf978f1eff',
+          //   'fields': [
+          //     {
+          //       'groupName': 'Group Name',
+          //       'rows': [
+          //         [
+          //           {'width': '100%', 'field': 'FirstName'},
+          //           {'width': '100%', 'field': 'LastName'}
+          //         ]
+          //       ]
+          //     }
+          //   ],
+          //   'name': 'Base Config',
+          //   'slug': 'baseConfig6',
+          //   'tags': ['base'],
+          //   'features': [
+          //     {'type': 'likes', 'enabled': false},
+          //     {'type': 'comments', 'enabled': false},
+          //     {'type': 'ratings', 'enabled': false},
+          //   ]
+          // }));
+        }
+        print("added items ${items.length}");
+      } else {
+        print("body is not a list");
+      }
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
 
     return RestResponse(
-        pagination: Pagination.fromJson(body["pagination"]),
-        entities: items.toList());
+        pagination: Pagination.fromJson(body["pagination"]), entities: items);
   }
 
   Future<void> createStoryConfig(StoryConfigRequest data) async {
@@ -66,6 +107,8 @@ class RestClient {
   }
 
   Future<LoginResponse> tryLogin(UserCredentials data) async {
+    print("class $hashCode | token $token");
+
     var response = await post(loginUrl,
         headers: contentTypeHeaders, body: jsonEncode(data.toJson()));
 

@@ -87,7 +87,8 @@ class MyApp extends StatelessWidget {
             }),
         GoRoute(
             path: '/story-config-list',
-            builder: (context, state) => StoryConfigList()),
+            builder: (context, state) =>
+                StoryConfigList(restClient: restClient)),
         GoRoute(
             path: '/story-configs/:slug',
             builder: (context, state) =>

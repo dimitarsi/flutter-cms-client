@@ -4,11 +4,12 @@ part 'story_config.g.dart';
 
 @JsonSerializable()
 class StoryConfigBase {
-  StoryConfigBase({this.name, this.tags, this.storyFeatures});
+  StoryConfigBase({this.name, this.tags, this.features});
 
   String? name;
   List<String>? tags;
-  StoryFeatures? storyFeatures;
+
+  StoryFeatures? features;
   List<Field>? fields;
 
   factory StoryConfigBase.fromJson(Map<String, dynamic> json) =>
@@ -35,7 +36,7 @@ class StoryConfigResponse extends StoryConfigBase {
   @JsonKey(name: "_id")
   String? id;
 
-  StoryConfigResponse({this.slug, this.id});
+  StoryConfigResponse({this.slug, this.id, super.name});
 
   factory StoryConfigResponse.fromJson(Map<String, dynamic> json) =>
       _$StoryConfigResponseFromJson(json);
@@ -69,7 +70,6 @@ class ConfigEnabled {
 class Field {
   Field({this.groupName, this.rows});
   String? groupName;
-
   List<FieldRow>? rows;
 
   factory Field.fromJson(Map<String, dynamic> json) => _$FieldFromJson(json);
@@ -78,7 +78,7 @@ class Field {
 
 @JsonSerializable()
 class FieldRow {
-  FieldRow({this.label, this.displayName, this.type, this.width});
+  FieldRow({this.width});
   String? label;
   String? displayName;
   String? type;
