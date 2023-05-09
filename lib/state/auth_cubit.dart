@@ -61,6 +61,7 @@ class AuthCubit extends Cubit<AuthState> {
 
         timer = Timer(timeout, () => emit(AuthState()));
       } else if (token.isNotEmpty) {
+        restClient.token = token;
         emit(AuthState(isLoggedIn: data.isLoggedIn, token: token));
         storage.setString("authToken", token);
       }
