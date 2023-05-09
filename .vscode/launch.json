@@ -5,9 +5,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "plenty_cms",
+      "name": "plenty_cms :8888",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "args": ["--web-port", "8888"]
     },
     {
       "name": "plenty_cms (profile mode)",
