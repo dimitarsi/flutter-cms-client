@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 import 'package:plenty_cms/service/data/rest_response.dart';
+import 'package:plenty_cms/service/models/story.dart';
 
 import '../models/story_config.dart';
 import '../models/user_auth.dart';
@@ -48,49 +49,18 @@ class RestClient {
     if (body["pagination"] == null || body["items"] == null) {
       return RestResponse(hasError: true);
     }
+
     List<StoryConfigResponse> items = [];
 
     try {
-      print(
-          ">> items is list ${body['items'] is List} and ${(body['items'] as List).length}");
       if (body["items"] != null) {
-        print("body is a list");
         var validItems = (body["items"]).where(
             (element) => element['_id'] != null && element['slug'] != null);
-        // .map((e) => StoryConfigResponse.fromJson(e));
-        // print("after where");
         for (var item in validItems.toList()) {
-          // print("add $item");
           items.add(StoryConfigResponse.fromJson(item));
-          // items.add(StoryConfigResponse.fromJson({
-          //   '_id': '6442337d0e9d1aaf978f1eff',
-          //   'fields': [
-          //     {
-          //       'groupName': 'Group Name',
-          //       'rows': [
-          //         [
-          //           {'width': '100%', 'field': 'FirstName'},
-          //           {'width': '100%', 'field': 'LastName'}
-          //         ]
-          //       ]
-          //     }
-          //   ],
-          //   'name': 'Base Config',
-          //   'slug': 'baseConfig6',
-          //   'tags': ['base'],
-          //   'features': [
-          //     {'type': 'likes', 'enabled': false},
-          //     {'type': 'comments', 'enabled': false},
-          //     {'type': 'ratings', 'enabled': false},
-          //   ]
-          // }));
         }
-        print("added items ${items.length}");
-      } else {
-        print("body is not a list");
       }
     } catch (e) {
-      print(e);
       rethrow;
     }
 
@@ -106,9 +76,33 @@ class RestClient {
     await patch(storyConfigUrl, headers: allHeaders, body: data.toJson());
   }
 
-  Future<LoginResponse> tryLogin(UserCredentials data) async {
-    print("class $hashCode | token $token");
+  Future<void> createStory(Story story) async {
+    await post(storyUrl, headers: allHeaders, body: jsonEncode(story.toJson()));
+  }
 
+  Future<RestResponse<Story>> getStories({page = 1}) async {
+    final response =
+        await get(Uri.parse("$storyUrl?page=$page"), headers: authHeader);
+    final body = jsonDecode(response.body);
+
+    List<Story> items = [];
+
+    try {
+      if (body["items"] != null) {
+        (body["items"] as List<Map<String, dynamic>>).forEach((element) {
+          items.add(Story.fromJson(element));
+        });
+      }
+    } catch (e) {
+      print("Error parsing getStory() items");
+      rethrow;
+    }
+
+    return RestResponse(
+        pagination: Pagination.fromJson(body["pagination"]), entities: items);
+  }
+
+  Future<LoginResponse> tryLogin(UserCredentials data) async {
     var response = await post(loginUrl,
         headers: contentTypeHeaders, body: jsonEncode(data.toJson()));
 

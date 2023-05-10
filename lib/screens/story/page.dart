@@ -1,17 +1,17 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart';
+import 'package:plenty_cms/service/client/client.dart';
+import 'package:plenty_cms/service/models/story.dart';
+import 'package:plenty_cms/service/models/story_config.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 
 class StoryPageScaffold extends StatelessWidget {
-  StoryPageScaffold({super.key, required this.slug});
+  StoryPageScaffold({super.key, required this.slug, required this.client});
 
   String slug;
+
+  final RestClient client;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +19,7 @@ class StoryPageScaffold extends StatelessWidget {
       drawer: SideNav(),
       appBar: AppBar(),
       body: StoryPage(
+        client: client,
         slug: slug,
       ),
     );
@@ -26,9 +27,10 @@ class StoryPageScaffold extends StatelessWidget {
 }
 
 class StoryPage extends StatefulWidget {
-  StoryPage({super.key, required this.slug});
+  StoryPage({super.key, required this.slug, required this.client});
 
   String slug;
+  final RestClient client;
 
   @override
   State<StoryPage> createState() => _StoryPageState();
@@ -37,66 +39,49 @@ class StoryPage extends StatefulWidget {
 class _StoryPageState extends State<StoryPage> {
   TextEditingController controller = TextEditingController();
   TextEditingController dropdownController = TextEditingController();
-  String? selectedItemSlug;
+  String? selectedConfigId;
 
-  late Iterable<dynamic> configs = [];
+  late Iterable<StoryConfigResponse> configs = [];
 
   @override
   void initState() {
     super.initState();
 
-    loadConfigs();
+    widget.client.listStoryConfigs().then((value) => {
+          setState(
+            () => configs = value.entities,
+          )
+        });
 
     dropdownController.addListener(() {
       setState(() {});
     });
   }
 
-  void loadConfigs() {
-    var token = context.read<AuthCubit>().state.token ?? '';
-
-    get(Uri.parse('http://localhost:8000/story-configs'),
-        headers: {"x-access-token": token}).then((response) {
-      setState(() {
-        var body = jsonDecode(response.body);
-        configs = body["items"];
-
-        // print(items);
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    var menuItems =
-        configs.where((e) => e["slug"] != null && e["fields"] != null);
-
-    var dropdownChildren = menuItems.map<DropdownMenuEntry<String>>(
+    var dropdownChildren = configs
+        .where((element) => element.id == null ? false : element.id!.isNotEmpty)
+        .map<DropdownMenuEntry<String>>(
       (e) {
-        return DropdownMenuEntry(
-            label: "${e["name"]} ${e["slug"]}", value: e["slug"]);
+        return DropdownMenuEntry(label: "${e.name}", value: e.id as String);
       },
     );
 
-    var config = configs.firstWhere(
-        (element) => element["slug"] == selectedItemSlug,
-        orElse: () => null);
+    StoryConfigResponse? config;
+
+    try {
+      configs.firstWhere((element) => element.id == selectedConfigId);
+    } catch (e) {}
 
     List<Widget> dynaimcFields = [];
 
-    if (config != null && config["fields"] != null) {
-      print(config["fields"]);
-      dynaimcFields = (config["fields"] as List<dynamic>).map((e) {
-        print(e);
-
-        return Text("Foobar - ${e["displayName"]}");
-        // var rows = (e["rows"] as List<dynamic>)
-        //     .map((row) => Text(row["displayName"]))
-        //     .toList();
-
-        // return Row(
-        //   children: rows,
-        // );
+    if (config != null && config.fields != null) {
+      dynaimcFields = config.fields!
+          .where((element) =>
+              element.groupName != null && element.groupName!.isNotEmpty)
+          .map((e) {
+        return Text(e.groupName!);
       }).toList();
     }
 
@@ -129,7 +114,7 @@ class _StoryPageState extends State<StoryPage> {
                     controller: dropdownController,
                     onSelected: (value) {
                       setState(() {
-                        selectedItemSlug = value.toString();
+                        selectedConfigId = value.toString();
                       });
                     },
                   ),
@@ -146,15 +131,14 @@ class _StoryPageState extends State<StoryPage> {
                   }
 
                   var token = context.read<AuthCubit>().state.token ?? '';
-
-                  post(Uri.parse("http://localhost:8000/stories"), headers: {
-                    "x-access-token": token
-                  }, body: {
-                    "name": controller.text,
-                    "slug": controller.text
-                        .replaceAll(RegExp(r'(\s+)'), "_")
-                        .toLowerCase()
-                  });
+                  var slug = controller.text
+                      .replaceAll(RegExp(r'(\s+)'), "_")
+                      .toLowerCase();
+                  widget.client.createStory(Story(
+                      name: controller.text,
+                      slug: slug,
+                      configId: selectedConfigId,
+                      data: {}));
                 },
                 child: Text("Save")),
           ),

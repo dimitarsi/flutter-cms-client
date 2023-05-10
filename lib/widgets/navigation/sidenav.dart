@@ -37,7 +37,7 @@ class SideNav extends Drawer {
       'Pages - Bar',
       {'slug': 'bar'}
     ],
-    ['/story', 'Story', {}]
+    ['/story-list', 'Story', {}]
   ];
 
   List<Widget> routes(BuildContext context) {

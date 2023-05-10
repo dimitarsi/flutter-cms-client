@@ -1,64 +1,89 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart';
+import 'package:plenty_cms/service/client/client.dart';
+import 'package:plenty_cms/service/models/story.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 
 class StoryListScaffold extends StatelessWidget {
+  StoryListScaffold({required this.client, super.key});
+
+  final RestClient client;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: SideNav(),
       appBar: AppBar(),
-      body: const StoryList(),
+      body: StoryList(client: client),
     );
   }
 }
 
 class StoryList extends StatefulWidget {
-  const StoryList({super.key});
+  const StoryList({super.key, required this.client});
+
+  final RestClient client;
 
   @override
   State<StoryList> createState() => _StoryListState();
 }
 
 class _StoryListState extends State<StoryList> {
-  late List<dynamic> stories = [];
+  late Iterable<Story> stories = [];
 
   @override
   void initState() {
     super.initState();
-    var token = context.read<AuthCubit>().state.token ?? '';
+    // var token = context.read<AuthCubit>().state.token ?? '';
 
-    get(Uri.parse('http://localhost:8000/stories'),
-        headers: {"x-access-token": token}).then((response) {
-      setState(() {
-        var body = jsonDecode(response.body);
-        stories = body["items"];
-      });
-    });
+    widget.client.getStories().then((value) => setState(
+          () {
+            stories = value.entities;
+          },
+        ));
+    // get(Uri.parse('http://localhost:8000/stories'),
+    //     headers: {"x-access-token": token}).then((response) {
+    //   setState(() {
+    //     var body = jsonDecode(response.body);
+    //     stories = body["items"];
+    //   });
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
-    var availableItems = stories.where((element) => element["name"] != null);
+    var availableItems = stories.where((element) => element.name != null);
 
-    return ListView.builder(
-      itemBuilder: (context, index) {
-        var el = availableItems.elementAt(index);
-        return ListTile(
-          title: Text(el["name"]),
-          onTap: () {
-            context.go("/story/${el["slug"]}");
-          },
-        );
-      },
-      itemCount: availableItems.length,
+    return Column(
+      children: [
+        if (availableItems.length == 0)
+          Text("No Items available")
+        else
+          Expanded(
+            child: ListView.builder(
+              itemBuilder: (context, index) {
+                var el = availableItems.elementAt(index);
+                if (el.name == null || el.slug == null) {
+                  return SizedBox.shrink();
+                }
+
+                return ListTile(
+                  title: Text(el.name!),
+                  onTap: () {
+                    context.go("/story/${el.slug}");
+                  },
+                );
+              },
+              itemCount: availableItems.length,
+            ),
+          ),
+        ElevatedButton(
+            onPressed: () => context.go('/story'),
+            child: Text("Create new Story"))
+      ],
     );
   }
 }
