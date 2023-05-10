@@ -98,13 +98,10 @@ class MyApp extends StatelessWidget {
             builder: (context, state) => StoryConfigPage(slug: '')),
         GoRoute(
           path: '/story-list',
-          builder: (context, state) => StoryList(
+          builder: (context, state) => StoryListScaffold(
             client: restClient,
           ),
         ),
-        GoRoute(
-            path: '/story-list',
-            builder: (context, state) => StoryListScaffold(client: restClient)),
         GoRoute(
             path: '/story',
             builder: (context, state) =>

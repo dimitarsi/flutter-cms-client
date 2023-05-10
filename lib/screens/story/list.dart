@@ -44,13 +44,6 @@ class _StoryListState extends State<StoryList> {
             stories = value.entities;
           },
         ));
-    // get(Uri.parse('http://localhost:8000/stories'),
-    //     headers: {"x-access-token": token}).then((response) {
-    //   setState(() {
-    //     var body = jsonDecode(response.body);
-    //     stories = body["items"];
-    //   });
-    // });
   }
 
   @override

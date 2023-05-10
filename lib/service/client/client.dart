@@ -80,6 +80,11 @@ class RestClient {
     await post(storyUrl, headers: allHeaders, body: jsonEncode(story.toJson()));
   }
 
+  Future<void> updateStory(String slugOrId, Story story) async {
+    await patch(Uri.parse("$storyUrl/$slugOrId"),
+        headers: allHeaders, body: jsonEncode(story.toJson()));
+  }
+
   Future<RestResponse<Story>> getStories({page = 1}) async {
     final response =
         await get(Uri.parse("$storyUrl?page=$page"), headers: authHeader);
@@ -89,7 +94,7 @@ class RestClient {
 
     try {
       if (body["items"] != null) {
-        (body["items"] as List<Map<String, dynamic>>).forEach((element) {
+        (body["items"] as List<dynamic>).forEach((element) {
           items.add(Story.fromJson(element));
         });
       }
@@ -100,6 +105,17 @@ class RestClient {
 
     return RestResponse(
         pagination: Pagination.fromJson(body["pagination"]), entities: items);
+  }
+
+  Future<Story?> getStoryBySlugOrId(String slugOrId) async {
+    final response =
+        await get(Uri.parse("$storyUrl/$slugOrId"), headers: authHeader);
+
+    if (response.statusCode < 300) {
+      return Story.fromJson(jsonDecode(response.body));
+    }
+
+    return null;
   }
 
   Future<LoginResponse> tryLogin(UserCredentials data) async {

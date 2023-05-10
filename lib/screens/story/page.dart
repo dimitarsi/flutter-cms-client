@@ -56,6 +56,17 @@ class _StoryPageState extends State<StoryPage> {
     dropdownController.addListener(() {
       setState(() {});
     });
+
+    if (widget.slug.isNotEmpty) {
+      widget.client.getStoryBySlugOrId(widget.slug).then((value) {
+        controller.value = TextEditingValue(
+          text: value?.name ?? '',
+        );
+        selectedConfigId = value?.configId;
+        dropdownController.value =
+            TextEditingValue(text: value?.configId ?? '');
+      });
+    }
   }
 
   @override
@@ -134,11 +145,22 @@ class _StoryPageState extends State<StoryPage> {
                   var slug = controller.text
                       .replaceAll(RegExp(r'(\s+)'), "_")
                       .toLowerCase();
-                  widget.client.createStory(Story(
-                      name: controller.text,
-                      slug: slug,
-                      configId: selectedConfigId,
-                      data: {}));
+
+                  if (widget.slug.isEmpty) {
+                    widget.client.createStory(Story(
+                        name: controller.text,
+                        slug: slug,
+                        configId: selectedConfigId,
+                        data: {}));
+                  } else {
+                    widget.client.updateStory(
+                        widget.slug,
+                        Story(
+                            configId: selectedConfigId,
+                            name: controller.text,
+                            slug: widget.slug,
+                            data: {}));
+                  }
                 },
                 child: Text("Save")),
           ),
