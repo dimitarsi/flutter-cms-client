@@ -326,13 +326,13 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            TextField(
+                            TextFormField(
                               decoration: fieldName,
-                              // controller: element.controller,
-                              onChanged: (value) => setState(() {
+                              initialValue: element.displayName,
+                              onSaved: (value) {
                                 element.displayName = value.toString();
-                                element.label = slugify(value);
-                              }),
+                                element.label = slugify(value ?? '');
+                              },
                             ),
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
