@@ -249,12 +249,29 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     for (var item in storyConfig?.fields ?? []) {
       fieldsList.add(Column(
         children: [
-          TextFormField(
-            initialValue: item.groupName ?? '',
-            decoration: InputDecoration(label: Text("Group Name")),
-            onSaved: (newValue) {
-              item.groupName = newValue;
-            },
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Expanded(
+                  child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  initialValue: item.groupName ?? '',
+                  decoration: InputDecoration(label: Text("Group Name")),
+                  onSaved: (newValue) {
+                    item.groupName = newValue;
+                  },
+                ),
+              )),
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    storyConfig?.fields?.remove(item);
+                  });
+                },
+                icon: Icon(Icons.delete),
+              )
+            ],
           ),
           rows(item),
           ElevatedButton(
