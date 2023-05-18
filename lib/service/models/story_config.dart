@@ -4,7 +4,7 @@ part 'story_config.g.dart';
 
 @JsonSerializable()
 class StoryConfigBase {
-  StoryConfigBase({this.name, this.tags, this.features});
+  StoryConfigBase({this.name, this.tags, this.features, this.fields});
 
   String? name;
   List<String>? tags;
@@ -20,14 +20,16 @@ class StoryConfigBase {
 
 @JsonSerializable()
 class StoryConfigRequest extends StoryConfigBase {
-  StoryConfigRequest({this.slug});
+  StoryConfigRequest(
+      {this.slug, super.features, super.name, super.tags, super.fields});
 
   String? slug;
 
   factory StoryConfigRequest.fromJson(Map<String, dynamic> json) =>
       _$StoryConfigRequestFromJson(json);
 
-  Map<String, dynamic> toJson() => _$StoryConfigBaseToJson(this);
+  @override
+  Map<String, dynamic> toJson() => _$StoryConfigRequestToJson(this);
 }
 
 @JsonSerializable()
@@ -41,6 +43,7 @@ class StoryConfigResponse extends StoryConfigBase {
   factory StoryConfigResponse.fromJson(Map<String, dynamic> json) =>
       _$StoryConfigResponseFromJson(json);
 
+  @override
   Map<String, dynamic> toJson() => _$StoryConfigResponseToJson(this);
 }
 
@@ -78,7 +81,7 @@ class Field {
 
 @JsonSerializable()
 class FieldRow {
-  FieldRow({this.width});
+  FieldRow({this.width, this.label, this.displayName, this.type});
   String? label;
   String? displayName;
   String? type;

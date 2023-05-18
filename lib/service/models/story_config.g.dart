@@ -13,9 +13,10 @@ StoryConfigBase _$StoryConfigBaseFromJson(Map<String, dynamic> json) =>
       features: json['features'] == null
           ? null
           : StoryFeatures.fromJson(json['features'] as Map<String, dynamic>),
-    )..fields = (json['fields'] as List<dynamic>?)
-        ?.map((e) => Field.fromJson(e as Map<String, dynamic>))
-        .toList();
+      fields: (json['fields'] as List<dynamic>?)
+          ?.map((e) => Field.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
 
 Map<String, dynamic> _$StoryConfigBaseToJson(StoryConfigBase instance) =>
     <String, dynamic>{
@@ -28,16 +29,15 @@ Map<String, dynamic> _$StoryConfigBaseToJson(StoryConfigBase instance) =>
 StoryConfigRequest _$StoryConfigRequestFromJson(Map<String, dynamic> json) =>
     StoryConfigRequest(
       slug: json['slug'] as String?,
-    )
-      ..name = json['name'] as String?
-      ..tags =
-          (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList()
-      ..features = json['features'] == null
+      features: json['features'] == null
           ? null
-          : StoryFeatures.fromJson(json['features'] as Map<String, dynamic>)
-      ..fields = (json['fields'] as List<dynamic>?)
+          : StoryFeatures.fromJson(json['features'] as Map<String, dynamic>),
+      name: json['name'] as String?,
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      fields: (json['fields'] as List<dynamic>?)
           ?.map((e) => Field.fromJson(e as Map<String, dynamic>))
-          .toList();
+          .toList(),
+    );
 
 Map<String, dynamic> _$StoryConfigRequestToJson(StoryConfigRequest instance) =>
     <String, dynamic>{
@@ -118,10 +118,10 @@ Map<String, dynamic> _$FieldToJson(Field instance) => <String, dynamic>{
 
 FieldRow _$FieldRowFromJson(Map<String, dynamic> json) => FieldRow(
       width: json['width'] as String?,
-    )
-      ..label = json['label'] as String?
-      ..displayName = json['displayName'] as String?
-      ..type = json['type'] as String?;
+      label: json['label'] as String?,
+      displayName: json['displayName'] as String?,
+      type: json['type'] as String?,
+    );
 
 Map<String, dynamic> _$FieldRowToJson(FieldRow instance) => <String, dynamic>{
       'label': instance.label,

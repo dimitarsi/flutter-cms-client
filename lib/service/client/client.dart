@@ -69,11 +69,13 @@ class RestClient {
   }
 
   Future<void> createStoryConfig(StoryConfigRequest data) async {
-    await post(storyConfigUrl, headers: allHeaders, body: data.toJson());
+    await post(storyConfigUrl,
+        headers: allHeaders, body: jsonEncode(data.toJson()));
   }
 
   Future<void> updateStoryConfig(StoryConfigRequest data) async {
-    await patch(storyConfigUrl, headers: allHeaders, body: data.toJson());
+    await patch(Uri.parse("$storyConfigUrl/${data.slug}"),
+        headers: allHeaders, body: jsonEncode(data.toJson()));
   }
 
   Future<void> createStory(Story story) async {

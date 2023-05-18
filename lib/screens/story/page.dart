@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/story.dart';
 import 'package:plenty_cms/service/models/story_config.dart';
@@ -69,6 +69,56 @@ class _StoryPageState extends State<StoryPage> {
     }
   }
 
+  void createOrUpdateStory() {
+    if (controller.text.isEmpty) {
+      return;
+    }
+
+    var slug = slugify(controller.text);
+
+    if (widget.slug.isEmpty) {
+      widget.client.createStory(Story(
+          name: controller.text,
+          slug: slug,
+          configId: selectedConfigId,
+          data: {}));
+    } else {
+      widget.client.updateStory(
+          widget.slug,
+          Story(
+              configId: selectedConfigId,
+              name: controller.text,
+              slug: widget.slug,
+              data: {}));
+    }
+  }
+
+  Widget dynamicFields() {
+    List<Widget> dynaimcFields = [];
+
+    StoryConfigResponse? config;
+    try {
+      config = configs.singleWhere(
+        (element) => element.id == selectedConfigId,
+      );
+
+      if (config != null && config.fields != null) {
+        dynaimcFields = config.fields!
+            .where((element) =>
+                element.groupName != null && element.groupName!.isNotEmpty)
+            .map((e) {
+          return Text(e.groupName!);
+        }).toList();
+      }
+    } catch (e) {
+      // do nothing
+    }
+
+    return Row(
+      children: dynaimcFields,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var dropdownChildren = configs
@@ -79,22 +129,9 @@ class _StoryPageState extends State<StoryPage> {
       },
     );
 
-    StoryConfigResponse? config;
-
     try {
       configs.firstWhere((element) => element.id == selectedConfigId);
     } catch (e) {}
-
-    List<Widget> dynaimcFields = [];
-
-    if (config != null && config.fields != null) {
-      dynaimcFields = config.fields!
-          .where((element) =>
-              element.groupName != null && element.groupName!.isNotEmpty)
-          .map((e) {
-        return Text(e.groupName!);
-      }).toList();
-    }
 
     return Form(
         child: SizedBox(
@@ -133,41 +170,15 @@ class _StoryPageState extends State<StoryPage> {
             ],
           ),
           Text("Type ${dropdownController.text}"),
+          dynamicFields(),
           Align(
             alignment: Alignment.topRight,
             child: TextButton(
                 onPressed: () {
-                  if (controller.text.isEmpty) {
-                    return;
-                  }
-
-                  var token = context.read<AuthCubit>().state.token ?? '';
-                  var slug = controller.text
-                      .replaceAll(RegExp(r'(\s+)'), "_")
-                      .toLowerCase();
-
-                  if (widget.slug.isEmpty) {
-                    widget.client.createStory(Story(
-                        name: controller.text,
-                        slug: slug,
-                        configId: selectedConfigId,
-                        data: {}));
-                  } else {
-                    widget.client.updateStory(
-                        widget.slug,
-                        Story(
-                            configId: selectedConfigId,
-                            name: controller.text,
-                            slug: widget.slug,
-                            data: {}));
-                  }
+                  createOrUpdateStory();
                 },
                 child: Text("Save")),
           ),
-          if (config != null)
-            Row(
-              children: dynaimcFields,
-            )
         ],
       ),
     ));

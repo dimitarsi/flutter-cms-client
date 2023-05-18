@@ -1,22 +1,23 @@
 import 'dart:convert';
-import 'dart:html';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:plenty_cms/helpers/slugify.dart';
+import 'package:plenty_cms/service/client/client.dart';
+import 'package:plenty_cms/service/models/story_config.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 import 'package:http/http.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
-import 'package:plenty_cms/screens/story_config/story_config_list.dart';
 
 class StoryConfigPage extends StatefulWidget {
-  StoryConfigPage({super.key, required this.slug});
+  StoryConfigPage({super.key, required this.slug, required this.client});
 
   String slug;
+
+  RestClient client;
+  final GlobalKey<FormState> contentTypeFormKey = GlobalKey();
 
   @override
   State<StoryConfigPage> createState() => _StoryConfigPageState();
@@ -106,63 +107,35 @@ class GroupConfig {
   }
 }
 
-class StoryConfig {
-  StoryConfig({required this.name, required this.slug});
-
-  String name;
-  String slug;
-
-  StoryConfig.fromJson(Map<String, dynamic> data)
-      : name = data['displayName'],
-        slug = data['slug'];
-
-  Map<String, dynamic> toJson() => {"displayName": name, "slug": slug};
-}
-
 class _StoryConfigPageState extends State<StoryConfigPage> {
   List<GroupConfig> groupConfigList = [];
-  List<StoryConfig> storyConfig = [];
+  StoryConfigResponse? storyConfig;
+  late Iterable<StoryConfigResponse> referenceFields;
+  final TextEditingController groupNameController = TextEditingController();
+  final groupNameLabel = const InputDecoration(labelText: "Content type name");
+  ButtonStyle buttonStyle = ElevatedButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15));
+  ButtonStyle addFieldOrRowButtonStyle = ElevatedButton.styleFrom(
+      padding: EdgeInsets.all(3), minimumSize: Size(30, 30));
+  String? referenceListValue;
 
   @override
   void initState() {
     super.initState();
 
-    var token = context.read<AuthCubit>().state.token ?? "";
-    var headers = {"x-access-token": token};
+    widget.client.listStoryConfigs().then((result) => referenceFields =
+        result.entities.where(
+            (element) => element.slug != widget.slug && element.name != null));
 
-    get(Uri.parse("http://localhost:8000/story-configs/"), headers: headers)
-        .then((result) {
-      var body = jsonDecode(result.body);
-      setState(() {
-        List<StoryConfig> items = [];
-
-        for (var item in body["items"]) {
-          if (item["name"] == null || item["slug"] == null) {
-            continue;
-          }
-          storyConfig.add(StoryConfig(name: item["name"], slug: item["slug"]));
-        }
+    if (widget.slug.isNotEmpty) {
+      widget.client.getStoryConfig(widget.slug).then((value) {
+        groupNameController.value = TextEditingValue(text: value.name ?? '');
+        storyConfig = value;
       });
-    }).catchError((err) => print(err));
-
-    get(Uri.parse("http://localhost:8000/story-configs/${widget.slug}"),
-            headers: headers)
-        .then((response) {
-      var body = jsonDecode(response.body);
-
-      setState(() {
-        groupConfigList.clear();
-        groupNameController.value = TextEditingValue(text: body["name"]);
-        var fields = (body["fields"] as List<dynamic>)
-            .map((f) => GroupConfig(
-                displayName: f["displayName"],
-                type: f["type"],
-                width: f["width"]))
-            .toList();
-
-        groupConfigList.addAll(fields);
-      });
-    }).catchError((err) => print(err));
+    } else {
+      storyConfig = StoryConfigResponse();
+      _addField();
+    }
   }
 
   @override
@@ -172,24 +145,24 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
       appBar: AppBar(),
       floatingActionButton: addFieldsButton(),
       body: DropdownButtonHideUnderline(
-        child: Column(
-          children: [
-            pageTitle(),
-            Container(
-              height: 80,
-            ),
-            nameSection(),
-            groupConfingCount(),
-            fileds(),
-            saveButtons(context)
-          ],
+        child: Form(
+          key: widget.contentTypeFormKey,
+          child: Column(
+            children: [
+              pageTitle(),
+              Container(
+                height: 80,
+              ),
+              nameSection(),
+              groupConfingCount(),
+              fields(),
+              saveButtons()
+            ],
+          ),
         ),
       ),
     );
   }
-
-  final TextEditingController groupNameController = TextEditingController();
-  final groupNameLabel = const InputDecoration(labelText: "Content type name");
 
   Text groupConfingCount() => Text("Fields ${groupConfigList.length}");
 
@@ -218,27 +191,77 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     );
   }
 
-  void _addElement() {
+  void _addField() {
+    FieldRow newRow = FieldRow(
+        width: '100%',
+        label: 'field_00',
+        displayName: 'Field 00',
+        type: 'text');
+
+    if (storyConfig == null) {
+      return;
+    }
+
+    if (storyConfig!.fields == null) {
+      storyConfig!.fields = [
+        Field(groupName: 'GroupName 00', rows: [newRow])
+      ];
+    } else {
+      var field = Field(groupName: "Field ${storyConfig!.fields!.length}");
+      storyConfig!.fields!.add(field);
+    }
+  }
+
+  void _addFieldRow(Field field) {
     setState(() {
-      String index = (groupConfigList.length + 1).toString().padLeft(2, '0');
-
-      groupConfigList
-          .add(GroupConfig(displayName: "Field $index", type: "text"));
-
-      groupConfigList = groupConfigList;
+      if (field.rows != null) {
+        field.rows!.add(FieldRow());
+      } else {
+        field.rows = [FieldRow()];
+      }
     });
   }
 
-  Widget fileds() {
+  Widget fields() {
     List<Widget> fieldsList = [];
+
+    for (var item in storyConfig?.fields ?? []) {
+      fieldsList.add(Column(
+        children: [
+          TextFormField(
+            initialValue: item.groupName ?? '',
+            decoration: InputDecoration(label: Text("Group Name")),
+            onSaved: (newValue) {
+              item.groupName = newValue;
+            },
+          ),
+          rows(item),
+          ElevatedButton(
+              onPressed: () {
+                _addFieldRow(item);
+              },
+              child: Text("Add Row"))
+        ],
+      ));
+    }
+
+    return Column(
+      children: [
+        ...fieldsList,
+        ElevatedButton(
+            onPressed: () => setState(_addField),
+            child: Text("Add Fields Group"))
+      ],
+    );
+  }
+
+  Widget rows(Field field) {
+    List<Widget> rowsList = [];
 
     const fieldName = InputDecoration(labelText: "Field Name");
 
-    ButtonStyle bs = ElevatedButton.styleFrom(
-        padding: EdgeInsets.all(3), minimumSize: Size(30, 30));
-
-    for (var element in groupConfigList) {
-      fieldsList.add(Row(
+    for (FieldRow element in field.rows ?? []) {
+      rowsList.add(Row(
         key: Key(element.hashCode.toString()),
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -267,19 +290,16 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                           children: [
                             TextField(
                               decoration: fieldName,
-                              controller: element.controller,
+                              // controller: element.controller,
                               onChanged: (value) => setState(() {
                                 element.displayName = value.toString();
-                                element.label = value
-                                    .toString()
-                                    .replaceAll(RegExp(r'(\s+)'), "_")
-                                    .toLowerCase();
+                                element.label = slugify(value);
                               }),
                             ),
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
                               child: Text(
-                                element.label,
+                                element.label ?? 'Label',
                                 style: Theme.of(context).textTheme.labelSmall,
                               ),
                             )
@@ -289,8 +309,8 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                       Container(
                         width: 10,
                       ),
-                      if (element.type == 'reference')
-                        ...referenceFields(element),
+                      // if (element.type == 'reference')
+                      //   ...referenceFieldsList(element),
                       Container(
                         width: 10,
                       ),
@@ -322,17 +342,17 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                       Container(
                         width: 10,
                       ),
-                      TextButton(
-                          onPressed: () {
-                            setState(() {
-                              element.showSettings = !element.showSettings;
-                            });
-                          },
-                          child: const Icon(Icons.settings))
+                      // TextButton(
+                      //     onPressed: () {
+                      //       setState(() {
+                      //         element.showSettings = !element.showSettings;
+                      //       });
+                      //     },
+                      //     child: const Icon(Icons.settings))
                     ],
                   ),
                 ),
-                elementSettings(element),
+                // elementSettings(element),
               ],
             ),
           ),
@@ -342,7 +362,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: ElevatedButton(
-                style: bs.merge(
+                style: addFieldOrRowButtonStyle.merge(
                     ElevatedButton.styleFrom(backgroundColor: Colors.red)),
                 onPressed: () {
                   setState(() {
@@ -359,27 +379,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     }
 
     return Column(
-      children: [
-        ...fieldsList,
-        Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Container(
-              height: 30,
-              width: 4,
-              decoration: BoxDecoration(
-                  color: Colors.lightBlueAccent,
-                  borderRadius: BorderRadius.circular(3),
-                  border: Border.all(width: 3, color: Colors.lightBlueAccent)),
-            )),
-        ElevatedButton(
-          child: Icon(
-            Icons.add,
-            size: 10,
-          ),
-          style: bs,
-          onPressed: _addElement,
-        )
-      ],
+      children: rowsList,
     );
   }
 
@@ -432,17 +432,19 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
 
   Widget addFieldsButton() {
     return FloatingActionButton(
-      onPressed: _addElement,
+      onPressed: _addField,
       child: const Icon(Icons.add_task),
     );
   }
 
-  ButtonStyle buttoStyle = ElevatedButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15));
+  Widget saveButtons() {
+    if (storyConfig == null) {
+      return SizedBox.shrink();
+    }
 
-  Widget saveButtons(BuildContext context) {
-    var nonEmptyConfigList = groupConfigList
-        .where((element) => element.displayName.isNotEmpty)
+    var nonEmptyConfigList = (storyConfig?.fields ?? [])
+        .where((element) =>
+            element.groupName != null && element.groupName!.isNotEmpty)
         .toList();
 
     return Padding(
@@ -466,49 +468,36 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                 if (nonEmptyConfigList.isEmpty) {
                   showModalBottomSheet(
                       context: context,
-                      builder: (BuildContext _) => const Text("Hello World"));
+                      builder: (_) => const Text("Hello World"));
                 }
               },
               child: ElevatedButton(
                 onPressed: nonEmptyConfigList.isEmpty
                     ? null
                     : () async {
-                        var auth = context.read<AuthCubit>();
-                        String token = "";
+                        final formState =
+                            widget.contentTypeFormKey.currentState!;
+                        final valid = formState.validate();
 
-                        if (auth.state.token != null) {
-                          token = auth.state.token!;
-                        } else {
+                        if (!valid) {
                           return;
                         }
 
-                        Map<String, String> headers = <String, String>{};
-                        headers["x-access-token"] = token;
-                        headers["content-type"] = "application/json";
-
-                        var body = json.encode({
-                          "name": groupNameController.text,
-                          "fields": groupConfigList,
-                          "slug": groupNameController.text
-                              .replaceAll(
-                                  RegExp(r'[\!\?&@\.,:*\(\)\[\]^%$/\\#~<>|}{]'),
-                                  '')
-                              .replaceAll(RegExp(r'\s+'), '_')
-                              .toLowerCase()
-                        });
+                        formState.save();
 
                         if (widget.slug.isEmpty) {
-                          post(Uri.parse("http://localhost:8000/story-configs"),
-                              headers: headers, body: body);
+                          widget.client.createStoryConfig(StoryConfigRequest(
+                              slug: slugify(groupNameController.text),
+                              name: groupNameController.text,
+                              fields: storyConfig?.fields));
                         } else {
-                          patch(
-                              Uri.parse(
-                                  "http://localhost:8000/story-configs/${widget.slug}"),
-                              headers: headers,
-                              body: body);
+                          widget.client.updateStoryConfig(StoryConfigRequest(
+                              slug: widget.slug,
+                              name: groupNameController.text,
+                              fields: storyConfig?.fields));
                         }
                       },
-                style: buttoStyle,
+                style: buttonStyle,
                 child: Text(widget.slug.isEmpty ? "Create" : "Update"),
               ),
             )
@@ -518,12 +507,9 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     );
   }
 
-  String? referenceListValue;
-
-  List<Widget> referenceFields(GroupConfig element) {
-    List<DropdownMenuItem<String>> items = storyConfig.map((e) {
-      print("${e.name} ${e.slug}");
-      return DropdownMenuItem<String>(child: Text(e.name), value: e.slug);
+  List<Widget> referenceFieldsList(GroupConfig element) {
+    List<DropdownMenuItem<String>> items = referenceFields.map((e) {
+      return DropdownMenuItem<String>(child: Text(e.name!), value: e.slug);
     }).toList();
     return [
       Expanded(
