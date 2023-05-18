@@ -128,8 +128,10 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
 
     if (widget.slug.isNotEmpty) {
       widget.client.getStoryConfig(widget.slug).then((value) {
-        groupNameController.value = TextEditingValue(text: value.name ?? '');
-        storyConfig = value;
+        setState(() {
+          groupNameController.value = TextEditingValue(text: value.name ?? '');
+          storyConfig = value;
+        });
       });
     } else {
       storyConfig = StoryConfigResponse();
