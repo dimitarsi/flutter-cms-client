@@ -108,7 +108,6 @@ class GroupConfig {
 }
 
 class _StoryConfigPageState extends State<StoryConfigPage> {
-  List<GroupConfig> groupConfigList = [];
   StoryConfigResponse? storyConfig;
   late Iterable<StoryConfigResponse> referenceFields;
   final TextEditingController groupNameController = TextEditingController();
@@ -154,7 +153,6 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                 height: 80,
               ),
               nameSection(),
-              groupConfingCount(),
               fields(),
               saveButtons()
             ],
@@ -163,8 +161,6 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
       ),
     );
   }
-
-  Text groupConfingCount() => Text("Fields ${groupConfigList.length}");
 
   Widget pageTitle() {
     return Text(
@@ -389,7 +385,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                     ElevatedButton.styleFrom(backgroundColor: Colors.red)),
                 onPressed: () {
                   setState(() {
-                    groupConfigList.remove(element);
+                    field.rows?.remove(element);
                   });
                 },
                 child: Icon(
