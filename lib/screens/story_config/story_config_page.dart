@@ -222,6 +222,29 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     });
   }
 
+  void _createOrUpdate() async {
+    final formState = widget.contentTypeFormKey.currentState!;
+    final valid = formState.validate();
+
+    if (!valid) {
+      return;
+    }
+
+    formState.save();
+
+    if (widget.slug.isEmpty) {
+      widget.client.createStoryConfig(StoryConfigRequest(
+          slug: slugify(groupNameController.text),
+          name: groupNameController.text,
+          fields: storyConfig?.fields));
+    } else {
+      widget.client.updateStoryConfig(StoryConfigRequest(
+          slug: widget.slug,
+          name: groupNameController.text,
+          fields: storyConfig?.fields));
+    }
+  }
+
   Widget fields() {
     List<Widget> fieldsList = [];
 
@@ -472,31 +495,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                 }
               },
               child: ElevatedButton(
-                onPressed: nonEmptyConfigList.isEmpty
-                    ? null
-                    : () async {
-                        final formState =
-                            widget.contentTypeFormKey.currentState!;
-                        final valid = formState.validate();
-
-                        if (!valid) {
-                          return;
-                        }
-
-                        formState.save();
-
-                        if (widget.slug.isEmpty) {
-                          widget.client.createStoryConfig(StoryConfigRequest(
-                              slug: slugify(groupNameController.text),
-                              name: groupNameController.text,
-                              fields: storyConfig?.fields));
-                        } else {
-                          widget.client.updateStoryConfig(StoryConfigRequest(
-                              slug: widget.slug,
-                              name: groupNameController.text,
-                              fields: storyConfig?.fields));
-                        }
-                      },
+                onPressed: nonEmptyConfigList.isEmpty ? null : _createOrUpdate,
                 style: buttonStyle,
                 child: Text(widget.slug.isEmpty ? "Create" : "Update"),
               ),
