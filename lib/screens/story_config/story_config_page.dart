@@ -37,34 +37,43 @@ class PaddedText extends StatelessWidget {
   }
 }
 
-const dropdownOptions = [
-  DropdownMenuItem(
-    value: "text",
-    child: PaddedText("Text"),
+class FieldType {
+  static String text = "text";
+  static String number = "number";
+  static String date = "date";
+  static String files = "files";
+  static String list = "list";
+  static String ref = "ref";
+}
+
+var dropdownOptions = [
+  DropdownMenuEntry(
+    value: FieldType.text,
+    label: "Text",
   ),
-  DropdownMenuItem(
-    value: "number",
-    child: PaddedText("Number"),
+  DropdownMenuEntry(
+    value: FieldType.number,
+    label: "Number",
   ),
-  DropdownMenuItem(
-    value: "date",
-    child: PaddedText("Date"),
+  DropdownMenuEntry(
+    value: FieldType.date,
+    label: "Date",
   ),
-  DropdownMenuItem(
-    value: "gallery",
-    child: PaddedText("Gallery"),
+  DropdownMenuEntry(
+    value: FieldType.files,
+    label: "Files",
   ),
-  DropdownMenuItem(
-    value: "list",
-    child: PaddedText("List"),
+  DropdownMenuEntry(
+    value: FieldType.list,
+    label: "List",
   ),
-  DropdownMenuItem(
-    value: "reference",
-    child: PaddedText("Reference"),
+  DropdownMenuEntry(
+    value: FieldType.ref,
+    label: "Reference",
   ),
-  DropdownMenuItem(
-    value: "custom",
-    child: PaddedText("Custom"),
+  DropdownMenuEntry(
+    value: "component",
+    label: "Component",
   ),
 ];
 
@@ -172,20 +181,18 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   }
 
   Widget nameSection() {
-    return Container(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Column(
-        children: [
-          SizedBox(
-            width: 300,
-            child: TextField(
-              controller: groupNameController,
-              decoration: groupNameLabel,
-            ),
-          ),
-          const Divider()
-        ],
-      ),
+    return SizedBox(
+      width: min(MediaQuery.of(context).size.width, 1024),
+      child: Expanded(
+          child: TextFormField(
+        controller: groupNameController,
+        decoration: groupNameLabel,
+        validator: (value) {
+          return value == null || value.isEmpty
+              ? "Content Type Name is required"
+              : null;
+        },
+      )),
     );
   }
 
@@ -194,7 +201,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
         width: '100%',
         label: 'field_00',
         displayName: 'Field 00',
-        type: 'text');
+        type: FieldType.text);
 
     if (storyConfig == null) {
       return;
@@ -205,7 +212,9 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
         Field(groupName: 'GroupName 00', rows: [newRow])
       ];
     } else {
-      var field = Field(groupName: "Field ${storyConfig!.fields!.length}");
+      var index = storyConfig!.fields!.length.toString();
+      var field =
+          Field(groupName: "Field ${index.padLeft(2, "0")}", rows: [newRow]);
       storyConfig!.fields!.add(field);
     }
   }
@@ -213,9 +222,9 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   void _addFieldRow(Field field) {
     setState(() {
       if (field.rows != null) {
-        field.rows!.add(FieldRow());
+        field.rows!.add(FieldRow(type: FieldType.text));
       } else {
-        field.rows = [FieldRow()];
+        field.rows = [FieldRow(type: FieldType.text)];
       }
     });
   }
@@ -246,178 +255,160 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   Widget fields() {
     List<Widget> fieldsList = [];
 
+    var screenWidth = MediaQuery.of(context).size.width;
+
     for (var item in storyConfig?.fields ?? []) {
-      fieldsList.add(Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Expanded(
+      var field = TextFormField(
+        initialValue: item.groupName ?? '',
+        decoration: const InputDecoration(label: Text("Group Name")),
+        onSaved: (newValue) {
+          item.groupName = newValue;
+        },
+      );
+      var deleteButton = _removeButton(() {
+        storyConfig?.fields?.remove(item);
+      });
+
+      var addRowButton = ElevatedButton(
+          onPressed: () {
+            _addFieldRow(item);
+          },
+          child: Text("Add Row"));
+
+      fieldsList.add(SizedBox(
+        width: min(screenWidth, 1024),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
                   child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  initialValue: item.groupName ?? '',
-                  decoration: InputDecoration(label: Text("Group Name")),
-                  onSaved: (newValue) {
-                    item.groupName = newValue;
-                  },
+                    padding: const EdgeInsets.all(8.0),
+                    child: field,
+                  ),
                 ),
-              )),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    storyConfig?.fields?.remove(item);
-                  });
-                },
-                icon: Icon(Icons.delete),
-              )
-            ],
-          ),
-          rows(item),
-          ElevatedButton(
-              onPressed: () {
-                _addFieldRow(item);
-              },
-              child: Text("Add Row"))
-        ],
+                deleteButton
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: rows(item),
+            ),
+            addRowButton
+          ],
+        ),
       ));
     }
 
+    fieldsList.add(ElevatedButton(
+        onPressed: () => setState(_addField), child: Text("Add Fields Group")));
+
     return Column(
-      children: [
-        ...fieldsList,
-        ElevatedButton(
-            onPressed: () => setState(_addField),
-            child: Text("Add Fields Group"))
-      ],
+      children: fieldsList,
+    );
+  }
+
+  Widget _getFieldByType(FieldRow element) {
+    const defaultFieldName = InputDecoration(labelText: "Field Name");
+
+    return TextFormField(
+      decoration: defaultFieldName,
+      initialValue: element.displayName,
+      onSaved: (value) {
+        element.displayName = value.toString();
+        element.label = slugify(value ?? '');
+      },
     );
   }
 
   Widget rows(Field field) {
     List<Widget> rowsList = [];
 
-    const fieldName = InputDecoration(labelText: "Field Name");
-
     for (FieldRow element in field.rows ?? []) {
-      rowsList.add(Row(
-        key: Key(element.hashCode.toString()),
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Container(
-            margin: EdgeInsets.only(bottom: 5),
-            width: min(MediaQuery.of(context).size.width - 20, 1200),
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                    width: 2, color: Color.fromARGB(179, 208, 208, 208)),
-                color: Color.fromARGB(221, 240, 240, 240)),
-            child: Column(
-              children: [
-                SizedBox(
-                  width: 1200,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minWidth: 100, maxWidth: 300),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextFormField(
-                              decoration: fieldName,
-                              initialValue: element.displayName,
-                              onSaved: (value) {
-                                element.displayName = value.toString();
-                                element.label = slugify(value ?? '');
-                              },
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                element.label ?? 'Label',
-                                style: Theme.of(context).textTheme.labelSmall,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 10,
-                      ),
-                      // if (element.type == 'reference')
-                      //   ...referenceFieldsList(element),
-                      Container(
-                        width: 10,
-                      ),
-                      ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minWidth: 100, maxWidth: 300),
-                        child: Column(
-                          children: [
-                            DropdownButton(
-                              isExpanded: true,
-                              elevation: 10,
-                              // alignment: AlignmentDirectional.bottomCenter,
-                              items: dropdownOptions,
-                              hint: Text("Field Type"),
-                              value: element.type,
-                              onChanged: (val) {
-                                setState(() {
-                                  element.type = val.toString();
-                                });
-                              },
-                            ),
-                            Container(
-                              height: 1,
-                              color: Colors.black,
-                            )
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 10,
-                      ),
-                      // TextButton(
-                      //     onPressed: () {
-                      //       setState(() {
-                      //         element.showSettings = !element.showSettings;
-                      //       });
-                      //     },
-                      //     child: const Icon(Icons.settings))
-                    ],
-                  ),
+      var inputField = _getFieldByType(element);
+
+      rowsList.add(
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                flex: 3,
+                child: inputField,
+              ),
+              // if (element.type == 'reference')
+              //   ...referenceFieldsList(element),
+              Flexible(
+                flex: 2,
+                child: Column(
+                  children: [
+                    DropdownMenu(
+                      label: Text("Field Type"),
+                      initialSelection: element.type,
+                      dropdownMenuEntries: dropdownOptions,
+                      onSelected: (value) {
+                        setState(() {
+                          element.type = value.toString();
+                        });
+                      },
+                    ),
+                  ],
                 ),
-                // elementSettings(element),
-              ],
-            ),
+              ),
+              Flexible(
+                  flex: 1,
+                  child: DropdownMenu(
+                    label: Text("Width"),
+                    initialSelection: element.width ?? "100",
+                    onSelected: (value) {
+                      setState(() {
+                        element.width = value;
+                      });
+                    },
+                    dropdownMenuEntries: const [
+                      DropdownMenuEntry(label: "100%", value: "100"),
+                      DropdownMenuEntry(label: "66%", value: "66"),
+                      DropdownMenuEntry(label: "50%", value: "50"),
+                      DropdownMenuEntry(label: "33%", value: "30"),
+                    ],
+                  )),
+              // TextButton(
+              //     onPressed: () {
+              //       setState(() {
+              //         element.showSettings = !element.showSettings;
+              //       });
+              //     },
+              //     child: const Icon(Icons.settings))
+              _removeButton(() {
+                field.rows?.remove(element);
+              })
+            ],
           ),
-          Container(
-            width: 5,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: ElevatedButton(
-                style: addFieldOrRowButtonStyle.merge(
-                    ElevatedButton.styleFrom(backgroundColor: Colors.red)),
-                onPressed: () {
-                  setState(() {
-                    field.rows?.remove(element);
-                  });
-                },
-                child: Icon(
-                  Icons.delete,
-                  size: 10,
-                )),
-          )
-        ],
-      ));
+        ),
+      );
     }
 
     return Column(
       children: rowsList,
+    );
+  }
+
+  Widget _removeButton(VoidCallback? onPressed) {
+    return SizedBox(
+      width: 75,
+      child: IconButton(
+          onPressed: () {
+            setState(() {
+              onPressed?.call();
+            });
+          },
+          icon: Icon(
+            Icons.delete,
+            color: Colors.red,
+          )),
     );
   }
 
