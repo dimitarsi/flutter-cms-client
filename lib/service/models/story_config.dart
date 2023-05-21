@@ -81,11 +81,12 @@ class Field {
 
 @JsonSerializable()
 class FieldRow {
-  FieldRow({this.width, this.label, this.displayName, this.type});
+  FieldRow({this.width, this.label, this.displayName, this.type, this.data});
   String? label;
   String? displayName;
   String? type;
   String? width;
+  Map<String, String>? data;
 
   factory FieldRow.fromJson(Map<String, dynamic> json) =>
       _$FieldRowFromJson(json);

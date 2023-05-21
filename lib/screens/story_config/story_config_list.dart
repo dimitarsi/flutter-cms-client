@@ -60,7 +60,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
       body: Column(
         children: [
           if (loading)
-            Text("Loading")
+            const Text("Loading")
           else ...[
             Expanded(child: list()),
             Container(
@@ -105,16 +105,16 @@ class _StoryConfigListState extends State<StoryConfigList> {
 
     buttons.add(TextButton(
         onPressed: page == 1 ? null : () => loadPage(1),
-        child: Icon(Icons.arrow_left)));
+        child: const Icon(Icons.arrow_left)));
 
     var lowerBoundry = max(1, page - 2);
     var upperBoundry = min(page + 2, pages);
     var medianPage = (pages / 2).floor();
 
     if (lowerBoundry > 2 && pages > 6) {
-      buttons.add(TextButton(onPressed: () => loadPage(1), child: Text("1")));
-      buttons.add(TextButton(onPressed: () => loadPage(2), child: Text("2")));
-      buttons.add(Text("..."));
+      buttons.add(TextButton(onPressed: () => loadPage(1), child: const Text("1")));
+      buttons.add(TextButton(onPressed: () => loadPage(2), child: const Text("2")));
+      buttons.add(const Text("..."));
     }
 
     if (pages > 6 &&
@@ -122,7 +122,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
         lowerBoundry > medianPage) {
       buttons.add(TextButton(
           onPressed: () => loadPage(medianPage), child: Text("$medianPage")));
-      buttons.add(Text("..."));
+      buttons.add(const Text("..."));
     }
 
     for (var index = lowerBoundry; index <= upperBoundry; index++) {
@@ -136,7 +136,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
             ),
             child: Text(
               "$page",
-              style: TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         );
@@ -149,13 +149,13 @@ class _StoryConfigListState extends State<StoryConfigList> {
     if (pages > 6 &&
         upperBoundry - lowerBoundry < 4 &&
         lowerBoundry < medianPage) {
-      buttons.add(Text("..."));
+      buttons.add(const Text("..."));
       buttons.add(TextButton(
           onPressed: () => loadPage(medianPage), child: Text("$medianPage")));
     }
 
     if (upperBoundry < pages - 2) {
-      buttons.add(Text("..."));
+      buttons.add(const Text("..."));
       buttons.add(TextButton(
           onPressed: () => loadPage(pages - 1), child: Text("${pages - 1}")));
       buttons.add(
@@ -164,7 +164,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
 
     buttons.add(TextButton(
         onPressed: page == pages ? null : () => loadPage(pages),
-        child: Icon(Icons.arrow_right)));
+        child: const Icon(Icons.arrow_right)));
 
     return Column(
       children: [

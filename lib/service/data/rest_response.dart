@@ -1,4 +1,3 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:plenty_cms/service/data/pagination.dart';
 
 class RestResponse<T> {

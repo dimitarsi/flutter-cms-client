@@ -96,9 +96,9 @@ class RestClient {
 
     try {
       if (body["items"] != null) {
-        (body["items"] as List<dynamic>).forEach((element) {
+        for (var element in (body["items"] as List<dynamic>)) {
           items.add(Story.fromJson(element));
-        });
+        }
       }
     } catch (e) {
       print("Error parsing getStory() items");

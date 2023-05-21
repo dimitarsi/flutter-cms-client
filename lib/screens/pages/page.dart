@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 class PagesPage extends StatelessWidget {
   PagesPage({super.key, required this.slug}) {
-    print(["Pages be like --- oooo", this.slug]);
+    print(["Pages be like --- oooo", slug]);
   }
 
   String slug;
@@ -16,7 +14,7 @@ class PagesPage extends StatelessWidget {
       drawer: SideNav(),
       appBar: AppBar(),
       body: Padding(
-        padding: EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
         child: Text(slug),
       ),
     );

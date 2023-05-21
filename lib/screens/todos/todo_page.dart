@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
-import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:plenty_cms/state/todos_cubit.dart';
 
 class TodosPage extends StatelessWidget {
@@ -32,7 +29,7 @@ class TodosPage extends StatelessWidget {
                       context.read<TodosCubit>().addItem(controller.text);
                       controller.clear();
                     },
-                    child: Text("Add item"))
+                    child: const Text("Add item"))
               ],
             ),
             Expanded(
@@ -44,7 +41,7 @@ class TodosPage extends StatelessWidget {
                       return ListTile(
                         title: Text(state[index]),
                         trailing: GestureDetector(
-                          child: Icon(Icons.delete),
+                          child: const Icon(Icons.delete),
                           onTap: () => context
                               .read<TodosCubit>()
                               .removeItem(state[index]),

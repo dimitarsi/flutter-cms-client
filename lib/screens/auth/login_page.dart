@@ -105,8 +105,8 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 TextButton(
                     onPressed: () => pageViewController.jumpToPage(0),
-                    child: Row(
-                      children: const [
+                    child: const Row(
+                      children: [
                         Padding(
                           padding: EdgeInsets.only(right: 5),
                           child: Icon(

@@ -88,10 +88,10 @@ class LoginFormView extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Trouble logging in?"),
+                const Text("Trouble logging in?"),
                 TextButton(
                     onPressed: () => pageViewController?.jumpToPage(2),
-                    child: Text("Forgotten password"))
+                    child: const Text("Forgotten password"))
               ],
             ),
           ),
@@ -104,7 +104,7 @@ class LoginFormView extends StatelessWidget {
           ),
           TextButton(
               onPressed: () => pageViewController?.jumpToPage(1),
-              child: Text("Create an account")),
+              child: const Text("Create an account")),
         ],
       ),
     );

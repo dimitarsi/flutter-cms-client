@@ -1,15 +1,12 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
+import 'package:plenty_cms/service/models/field_type.dart';
 import 'package:plenty_cms/service/models/story_config.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
-import 'package:http/http.dart';
-import 'package:plenty_cms/state/auth_cubit.dart';
 
 class StoryConfigPage extends StatefulWidget {
   StoryConfigPage({super.key, required this.slug, required this.client});
@@ -31,19 +28,10 @@ class PaddedText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Text(data),
     );
   }
-}
-
-class FieldType {
-  static String text = "text";
-  static String number = "number";
-  static String date = "date";
-  static String files = "files";
-  static String list = "list";
-  static String ref = "ref";
 }
 
 var dropdownOptions = [
@@ -72,7 +60,7 @@ var dropdownOptions = [
     label: "Reference",
   ),
   DropdownMenuEntry(
-    value: "component",
+    value: FieldType.component,
     label: "Component",
   ),
 ];
@@ -124,19 +112,19 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   ButtonStyle buttonStyle = ElevatedButton.styleFrom(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15));
   ButtonStyle addFieldOrRowButtonStyle = ElevatedButton.styleFrom(
-      padding: EdgeInsets.all(3), minimumSize: Size(30, 30));
+      padding: const EdgeInsets.all(3), minimumSize: const Size(30, 30));
   String? referenceListValue;
 
   @override
   void initState() {
     super.initState();
 
-    widget.client.listStoryConfigs().then((result) => referenceFields =
+    widget.client.listStoryConfigs().then<void>((result) => referenceFields =
         result.entities.where(
             (element) => element.slug != widget.slug && element.name != null));
 
     if (widget.slug.isNotEmpty) {
-      widget.client.getStoryConfig(widget.slug).then((value) {
+      widget.client.getStoryConfig(widget.slug).then<void>((value) {
         setState(() {
           groupNameController.value = TextEditingValue(text: value.name ?? '');
           storyConfig = value;
@@ -273,7 +261,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
           onPressed: () {
             _addFieldRow(item);
           },
-          child: Text("Add Row"));
+          child: const Text("Add Row"));
 
       fieldsList.add(SizedBox(
         width: min(screenWidth, 1024),
@@ -303,7 +291,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     }
 
     fieldsList.add(ElevatedButton(
-        onPressed: () => setState(_addField), child: Text("Add Fields Group")));
+        onPressed: () => setState(_addField), child: const Text("Add Fields Group")));
 
     return Column(
       children: fieldsList,
@@ -346,7 +334,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                 child: Column(
                   children: [
                     DropdownMenu(
-                      label: Text("Field Type"),
+                      label: const Text("Field Type"),
                       initialSelection: element.type,
                       dropdownMenuEntries: dropdownOptions,
                       onSelected: (value) {
@@ -361,7 +349,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
               Flexible(
                   flex: 1,
                   child: DropdownMenu(
-                    label: Text("Width"),
+                    label: const Text("Width"),
                     initialSelection: element.width ?? "100",
                     onSelected: (value) {
                       setState(() {
@@ -405,7 +393,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
               onPressed?.call();
             });
           },
-          icon: Icon(
+          icon: const Icon(
             Icons.delete,
             color: Colors.red,
           )),
@@ -450,7 +438,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
               Row(
                 children: [
                   const Text("Set current date as default:"),
-                  Switch(value: true, onChanged: (_v) {})
+                  Switch(value: true, onChanged: (v) {})
                 ],
               )
           ],
@@ -468,7 +456,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
 
   Widget saveButtons() {
     if (storyConfig == null) {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
 
     var nonEmptyConfigList = (storyConfig?.fields ?? [])
@@ -514,7 +502,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
 
   List<Widget> referenceFieldsList(GroupConfig element) {
     List<DropdownMenuItem<String>> items = referenceFields.map((e) {
-      return DropdownMenuItem<String>(child: Text(e.name!), value: e.slug);
+      return DropdownMenuItem<String>(value: e.slug, child: Text(e.name!));
     }).toList();
     return [
       Expanded(
@@ -529,7 +517,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
           },
         ),
       ),
-      SizedBox(
+      const SizedBox(
         width: 50,
         child: TextField(
             keyboardType:
@@ -538,7 +526,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
               label: Text("Min count"),
             )),
       ),
-      SizedBox(
+      const SizedBox(
         width: 50,
         child: TextField(
             keyboardType:

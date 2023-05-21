@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:plenty_cms/state/todos_cubit.dart';
-import 'package:plenty_cms/screens/error/error_page.dart';
 import 'package:plenty_cms/screens/pages/page.dart';
 import 'package:plenty_cms/screens/story/list.dart';
 import 'package:plenty_cms/screens/story/page.dart';
@@ -25,7 +24,9 @@ void main() {
 
   RestClient restClient = RestClient();
 
-  SharedPreferences.getInstance().then(
+  WidgetsFlutterBinding.ensureInitialized();
+
+  SharedPreferences.getInstance().then<void>(
     (value) {
       restClient.token = value.getString("authToken") ?? "";
       runApp(MyApp(
@@ -33,7 +34,7 @@ void main() {
         token: value.getString("authToken"),
       ));
     },
-  ).catchError(() => runApp(MyApp(restClient: restClient)));
+  ); // .catchError(() => runApp(MyApp(restClient: restClient)));
 }
 
 class MyApp extends StatelessWidget {
@@ -63,7 +64,7 @@ class MyApp extends StatelessWidget {
       routes: [
         GoRoute(
           path: '/',
-          builder: (context, state) => HomePage(),
+          builder: (context, state) => const HomePage(),
         ),
         GoRoute(
           path: '/login',

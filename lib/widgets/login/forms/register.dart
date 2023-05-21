@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:plenty_cms/widgets/login/forms/validation/is_email.dart';
-import 'package:plenty_cms/widgets/login/forms/validation/is_not_empty.dart';
 
 import '../../../state/auth_cubit.dart';
 import 'models/registration_form.dart';

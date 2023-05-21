@@ -1,14 +1,12 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/story.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
-import 'package:plenty_cms/state/auth_cubit.dart';
 
 class StoryListScaffold extends StatelessWidget {
-  StoryListScaffold({required this.client, super.key});
+  const StoryListScaffold({required this.client, super.key});
 
   final RestClient client;
 
@@ -37,9 +35,8 @@ class _StoryListState extends State<StoryList> {
   @override
   void initState() {
     super.initState();
-    // var token = context.read<AuthCubit>().state.token ?? '';
 
-    widget.client.getStories().then((value) => setState(
+    widget.client.getStories().then<void>((value) => setState(
           () {
             stories = value.entities;
           },
@@ -52,15 +49,15 @@ class _StoryListState extends State<StoryList> {
 
     return Column(
       children: [
-        if (availableItems.length == 0)
-          Text("No Items available")
+        if (availableItems.isEmpty)
+          const Text("No Items available")
         else
           Expanded(
             child: ListView.builder(
               itemBuilder: (context, index) {
                 var el = availableItems.elementAt(index);
                 if (el.name == null || el.slug == null) {
-                  return SizedBox.shrink();
+                  return const SizedBox.shrink();
                 }
 
                 return ListTile(
@@ -75,7 +72,7 @@ class _StoryListState extends State<StoryList> {
           ),
         ElevatedButton(
             onPressed: () => context.go('/story'),
-            child: Text("Create new Story"))
+            child: const Text("Create new Story"))
       ],
     );
   }
