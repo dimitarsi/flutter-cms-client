@@ -3,6 +3,7 @@ import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/story.dart';
 import 'package:plenty_cms/service/models/story_config.dart';
+import 'package:plenty_cms/widgets/form/file_picker_ui.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 class StoryPageScaffold extends StatelessWidget {
@@ -158,6 +159,8 @@ class _StoryPageState extends State<StoryPage> {
               dataBag[e.label!] = newValue;
             },
           );
+        case 'files':
+          return FilePickerUi(client: widget.client);
         case 'date':
           var now = DateTime.now();
           var parsed = DateTime.tryParse(dataBag[e.label] ?? "");
@@ -267,6 +270,7 @@ class _StoryPageState extends State<StoryPage> {
   }
 
   ElevatedButton saveButton() {
-    return ElevatedButton(onPressed: createOrUpdateStory, child: const Text("Save"));
+    return ElevatedButton(
+        onPressed: createOrUpdateStory, child: const Text("Save"));
   }
 }

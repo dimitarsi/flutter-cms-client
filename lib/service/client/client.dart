@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart';
 import 'package:plenty_cms/service/data/rest_response.dart';
 import 'package:plenty_cms/service/models/story.dart';
@@ -30,6 +31,7 @@ class RestClient {
   Uri get loginUrl => Uri.parse("$url/login");
   Uri get logoutUrl => Uri.parse("$url/logout");
   Uri get usersUrl => Uri.parse("$url/users");
+  Uri get attachmentsUrl => Uri.parse("$url/attachments");
 
   Future<StoryConfigResponse> getStoryConfig(String idOrSlug) async {
     var getStoryConfigUrlWithIdOrSlug = Uri.parse("$storyConfigUrl/$idOrSlug");
@@ -127,5 +129,21 @@ class RestClient {
     var res = LoginResponse.fromJson(jsonDecode(response.body));
 
     return res;
+  }
+
+  Future<void> uploadFile(PlatformFile f) async {
+    var request = MultipartRequest('post', attachmentsUrl);
+
+    if (f.bytes != null) {
+      request.files.add(MultipartFile.fromBytes(
+          "attachments", f.bytes as List<int>,
+          filename: f.name));
+    }
+    try {
+      await request.send();
+    } catch (e) {
+      print("Couldn't upload file");
+      print(e.toString());
+    }
   }
 }
