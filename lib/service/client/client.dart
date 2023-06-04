@@ -131,8 +131,11 @@ class RestClient {
     return res;
   }
 
-  Future<void> uploadFile(PlatformFile f) async {
+  // TODO: Allow multiple file uploads with one request
+  Future<List<dynamic>> uploadFile(PlatformFile f) async {
     var request = MultipartRequest('post', attachmentsUrl);
+
+    request.headers.addAll(authHeader);
 
     if (f.bytes != null) {
       request.files.add(MultipartFile.fromBytes(
@@ -140,10 +143,15 @@ class RestClient {
           filename: f.name));
     }
     try {
-      await request.send();
+      final response = await request.send();
+      final responseData = await response.stream.bytesToString();
+
+      return jsonDecode(responseData);
     } catch (e) {
       print("Couldn't upload file");
       print(e.toString());
     }
+
+    return [];
   }
 }

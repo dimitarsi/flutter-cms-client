@@ -160,7 +160,16 @@ class _StoryPageState extends State<StoryPage> {
             },
           );
         case 'files':
-          return FilePickerUi(client: widget.client);
+          return FilePickerUi(
+              client: widget.client,
+              fieldData: dataBag[e.label!],
+              onFilesUploaded: (filesIds) {
+                print("File Ids: $filesIds");
+                if (e.label != null) {
+                  // dataBag[e.label!] = filesIds.map((e) => {'id': e});
+                  dataBag[e.label!] = filesIds;
+                }
+              });
         case 'date':
           var now = DateTime.now();
           var parsed = DateTime.tryParse(dataBag[e.label] ?? "");
