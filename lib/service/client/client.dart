@@ -131,19 +131,29 @@ class RestClient {
     return res;
   }
 
-  Future<void> uploadFile(PlatformFile f) async {
+  Future<List<dynamic>> uploadFiles(List<PlatformFile> files) async {
     var request = MultipartRequest('post', attachmentsUrl);
 
-    if (f.bytes != null) {
-      request.files.add(MultipartFile.fromBytes(
-          "attachments", f.bytes as List<int>,
-          filename: f.name));
+    request.headers.addAll(authHeader);
+
+    for (final f in files) {
+      if (f.bytes != null) {
+        request.files.add(MultipartFile.fromBytes(
+            "attachments", f.bytes as List<int>,
+            filename: f.name));
+      }
     }
+
     try {
-      await request.send();
+      final response = await request.send();
+      final responseData = await response.stream.bytesToString();
+
+      return jsonDecode(responseData);
     } catch (e) {
       print("Couldn't upload file");
       print(e.toString());
     }
+
+    return [];
   }
 }
