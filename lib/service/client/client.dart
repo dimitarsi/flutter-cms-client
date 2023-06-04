@@ -131,17 +131,19 @@ class RestClient {
     return res;
   }
 
-  // TODO: Allow multiple file uploads with one request
-  Future<List<dynamic>> uploadFile(PlatformFile f) async {
+  Future<List<dynamic>> uploadFiles(List<PlatformFile> files) async {
     var request = MultipartRequest('post', attachmentsUrl);
 
     request.headers.addAll(authHeader);
 
-    if (f.bytes != null) {
-      request.files.add(MultipartFile.fromBytes(
-          "attachments", f.bytes as List<int>,
-          filename: f.name));
+    for (final f in files) {
+      if (f.bytes != null) {
+        request.files.add(MultipartFile.fromBytes(
+            "attachments", f.bytes as List<int>,
+            filename: f.name));
+      }
     }
+
     try {
       final response = await request.send();
       final responseData = await response.stream.bytesToString();

@@ -1,12 +1,11 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/service/client/client.dart';
-import 'package:plenty_cms/service/models/story_config.dart';
 
 typedef FilesUploadedHandler = void Function(List<String>);
 
 class FilePickerUi extends StatefulWidget {
-  const FilePickerUi(
+  FilePickerUi(
       {super.key,
       required this.client,
       required this.fieldData,
@@ -14,6 +13,8 @@ class FilePickerUi extends StatefulWidget {
 
   final RestClient client;
   final dynamic fieldData;
+  final List<String> listOfNewUploadIds = [];
+  final List<String> listOfNewUploadNames = [];
 
   final FilesUploadedHandler? onFilesUploaded;
 
@@ -26,28 +27,42 @@ class _FilePickerUiState extends State<FilePickerUi> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        Text("Total ${(widget.fieldData ?? []).length}"),
         availableUploads(),
         pickButton(),
-        Text("tota files: ${listOfFiles.length}"),
+        Text("tota files: ${widget.listOfNewUploadNames.length}"),
         pickList()
       ],
     );
   }
 
-  List<String> listOfFiles = [];
-
   Widget availableUploads() {
     if (widget.fieldData != null && widget.fieldData is List) {
-      final listOfIds = widget.fieldData;
-      List<Widget> items = [];
+      List<dynamic> listOfIds = widget.fieldData;
+      // List<Widget> items = [];
 
-      for (var item in listOfIds) {
-        items.add(Text("id: $item"));
-      }
+      // for (var item in listOfIds) {
+      //   items.add(Text("id: $item"));
+      // }
 
-      return Container(
-        padding: EdgeInsets.all(8),
-        child: Row(children: items.toList()),
+      return SizedBox(
+        height: 300,
+        child: ListView.builder(
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text("Hash: ${listOfIds[index]}"),
+              trailing: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  setState(() {
+                    listOfIds.removeAt(index);
+                  });
+                },
+              ),
+            );
+          },
+          itemCount: listOfIds.length,
+        ),
       );
     }
 
@@ -69,38 +84,58 @@ class _FilePickerUiState extends State<FilePickerUi> {
     List<Future> waitList = [];
 
     for (PlatformFile file in pickedFiles?.files ?? []) {
-      listOfFiles.add(file.name);
-      waitList.add(widget.client.uploadFile(file));
+      widget.listOfNewUploadNames.add(file.name);
     }
 
-    var added = await Future.wait(waitList);
+    final files = pickedFiles?.files;
 
-    widget.onFilesUploaded?.call(added.map((dynamic f) {
-      print("f: ${f[0]['name']} and ${f[0]['id']}");
-      return "${f[0]['id']}";
-    }).toList());
+    if (files != null) {
+      waitList.add(widget.client.uploadFiles(files));
 
-    // widget.onFilesUploaded?.call([]);
+      var added = await Future.wait(waitList);
 
-    setState(() {
-      // listOfFiles.addAll(added.map((f) => f['name']));
-    });
+      for (final resp in added) {
+        for (final fileResult in resp) {
+          widget.listOfNewUploadIds.add(fileResult['id']);
+        }
+      }
 
-    // setState(() {});
-    // print("List: ${pickedFiles?.count ?? 0}");
+      _callback();
+
+      setState(() {});
+    }
   }
 
   Widget pickList() {
     return SizedBox(
       height: 300,
       child: ListView.builder(
-          itemCount: listOfFiles.length,
+          itemCount: widget.listOfNewUploadNames.length,
           itemBuilder: (context, ind) {
             return ListTile(
-              title: Text("Iteme ${listOfFiles.elementAt(ind)}"),
+              title:
+                  Text("Iteme ${widget.listOfNewUploadNames.elementAt(ind)}"),
               leading: Icon(Icons.file_upload),
+              trailing: IconButton(
+                icon: Icon(Icons.delete_forever),
+                onPressed: () {
+                  setState(() {
+                    widget.listOfNewUploadNames.removeAt(ind);
+                    widget.listOfNewUploadIds.removeAt(ind);
+                  });
+                },
+              ),
             );
           }),
     );
+  }
+
+  void _callback() {
+    List<String> oldAndNewListItems = [
+      ...widget.fieldData,
+      ...widget.listOfNewUploadIds
+    ];
+
+    widget.onFilesUploaded?.call(oldAndNewListItems);
   }
 }

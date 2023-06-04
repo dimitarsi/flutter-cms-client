@@ -148,31 +148,30 @@ class _StoryPageState extends State<StoryPage> {
   }
 
   Iterable<Widget> getRows(Iterable<FieldRow> rows) {
-    return rows.map((e) {
-      switch (e.type) {
+    return rows.map((row) {
+      switch (row.type) {
         case 'text':
           return TextFormField(
-            initialValue: dataBag[e.label],
+            initialValue: dataBag[row.label],
             decoration: InputDecoration(
-                label: Text(e.displayName ?? e.label ?? "Unknown Field")),
+                label: Text(row.displayName ?? row.label ?? "Unknown Field")),
             onSaved: (newValue) {
-              dataBag[e.label!] = newValue;
+              dataBag[row.label!] = newValue;
             },
           );
         case 'files':
           return FilePickerUi(
               client: widget.client,
-              fieldData: dataBag[e.label!],
+              fieldData: dataBag[row.label],
               onFilesUploaded: (filesIds) {
-                print("File Ids: $filesIds");
-                if (e.label != null) {
-                  // dataBag[e.label!] = filesIds.map((e) => {'id': e});
-                  dataBag[e.label!] = filesIds;
+                var label = row.label;
+                if (label != null) {
+                  dataBag[label] = filesIds;
                 }
               });
         case 'date':
           var now = DateTime.now();
-          var parsed = DateTime.tryParse(dataBag[e.label] ?? "");
+          var parsed = DateTime.tryParse(dataBag[row.label] ?? "");
           var fistDate = now.copyWith(year: now.year - 30);
           var lastDate = now.copyWith(year: now.year + 10);
 
@@ -189,8 +188,8 @@ class _StoryPageState extends State<StoryPage> {
                   );
                   if (newDate != null) {
                     setState(() {
-                      if (e.label != null && e.label!.isNotEmpty) {
-                        dataBag[e.label!] = newDate.toUtc().toString();
+                      if (row.label != null && row.label!.isNotEmpty) {
+                        dataBag[row.label!] = newDate.toUtc().toString();
                       }
                     });
                   }
@@ -202,8 +201,8 @@ class _StoryPageState extends State<StoryPage> {
                 child: InputDatePickerFormField(
                   onDateSaved: (value) {
                     setState(() {
-                      if (e.label != null && e.label!.isNotEmpty) {
-                        dataBag[e.label!] = value.toUtc().toString();
+                      if (row.label != null && row.label!.isNotEmpty) {
+                        dataBag[row.label!] = value.toUtc().toString();
                       }
                     });
                   },
@@ -216,7 +215,7 @@ class _StoryPageState extends State<StoryPage> {
             ],
           );
         default:
-          return Text("Unknown field type ${e.type}");
+          return Text("Unknown field type ${row.type}");
       }
     });
   }
