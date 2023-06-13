@@ -20,45 +20,30 @@ class SideNav extends Drawer {
   final routesMap = [
     ['/', 'Home', {}],
     ['/login', 'Login', {}],
-    ['/todos', 'Todos', {}],
     ['/story-config-list', 'Content Types', {}],
     [
       '/story-configs',
       'Content Types Create',
       {'slug': ''}
     ],
-    [
-      '/pages/foo',
-      'Pages - Foo',
-      {'slug': 'foo'}
-    ],
-    [
-      '/pages/bar',
-      'Pages - Bar',
-      {'slug': 'bar'}
-    ],
     ['/story-list', 'Story', {}]
   ];
 
   List<Widget> routes(BuildContext context) {
-    var widgets = <Widget>[];
+    final widgets = routesMap.map((element) {
+      final path = "${element.elementAt(0)}";
+      final label = "${element.elementAt(1)}";
 
-    // routesMap.forEach((key, value) => {
-    //       widgets.add(
-    //           TextButton(onPressed: () => context.go(key), child: Text(value)))
-    //     });
-
-    for (var element in routesMap) {
-      widgets.add(
-        TextButton(
-          onPressed: () => context.go(Uri(
-            path: element[0].toString(),
-          ).toString()),
-          child: Text(element[1].toString()),
-        ),
+      return TextButton(
+        onPressed: () {
+          context.go(Uri(
+            path: path,
+          ).toString());
+        },
+        child: Text(label),
       );
-    }
+    });
 
-    return widgets;
+    return widgets.toList();
   }
 }
