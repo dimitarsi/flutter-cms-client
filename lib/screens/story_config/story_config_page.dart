@@ -145,7 +145,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
       body: DropdownButtonHideUnderline(
         child: Form(
           key: widget.contentTypeFormKey,
-          child: Column(
+          child: ListView(
             children: [
               pageTitle(),
               Container(
@@ -291,7 +291,8 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     }
 
     fieldsList.add(ElevatedButton(
-        onPressed: () => setState(_addField), child: const Text("Add Fields Group")));
+        onPressed: () => setState(_addField),
+        child: const Text("Add Fields Group")));
 
     return Column(
       children: fieldsList,

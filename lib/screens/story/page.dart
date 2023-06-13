@@ -94,24 +94,27 @@ class _StoryPageState extends State<StoryPage> {
 
     var slug = slugify(controller.text);
 
-    if (widget.formKey.currentState != null) {
-      widget.formKey.currentState?.save();
+    var formState = widget.formKey.currentState;
+    if (formState == null || !formState.validate()) {
+      return;
+    }
 
-      if (widget.slug.isEmpty) {
-        widget.client.createStory(Story(
-            name: controller.text,
-            slug: slug,
-            configId: selectedConfigId,
-            data: dataBag));
-      } else {
-        widget.client.updateStory(
-            widget.slug,
-            Story(
-                configId: selectedConfigId,
-                name: controller.text,
-                slug: widget.slug,
-                data: dataBag));
-      }
+    formState.save();
+
+    if (widget.slug.isEmpty) {
+      widget.client.createStory(Story(
+          name: controller.text,
+          slug: slug,
+          configId: selectedConfigId,
+          data: dataBag));
+    } else {
+      widget.client.updateStory(
+          widget.slug,
+          Story(
+              configId: selectedConfigId,
+              name: controller.text,
+              slug: widget.slug,
+              data: dataBag));
     }
   }
 
@@ -168,6 +171,24 @@ class _StoryPageState extends State<StoryPage> {
           case 'text':
             return TextFormField(
               initialValue: dataBag[row.label],
+              decoration: InputDecoration(
+                  label: Text(row.displayName ?? row.label ?? "Unknown Field")),
+              onSaved: (newValue) {
+                dataBag[row.label!] = newValue;
+              },
+            );
+          case 'number':
+            return TextFormField(
+              initialValue: dataBag[row.label],
+              validator: (value) {
+                final res = double.tryParse(value ?? "");
+
+                if (res == null) {
+                  return "Number is needed";
+                }
+
+                return null;
+              },
               decoration: InputDecoration(
                   label: Text(row.displayName ?? row.label ?? "Unknown Field")),
               onSaved: (newValue) {
@@ -251,8 +272,7 @@ class _StoryPageState extends State<StoryPage> {
 
     return Form(
         key: widget.formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
             Row(
               children: [
