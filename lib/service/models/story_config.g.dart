@@ -121,6 +121,9 @@ FieldRow _$FieldRowFromJson(Map<String, dynamic> json) => FieldRow(
       label: json['label'] as String?,
       displayName: json['displayName'] as String?,
       type: json['type'] as String?,
+      data: (json['data'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, e as String),
+      ),
     );
 
 Map<String, dynamic> _$FieldRowToJson(FieldRow instance) => <String, dynamic>{
@@ -128,4 +131,5 @@ Map<String, dynamic> _$FieldRowToJson(FieldRow instance) => <String, dynamic>{
       'displayName': instance.displayName,
       'type': instance.type,
       'width': instance.width,
+      'data': instance.data,
     };

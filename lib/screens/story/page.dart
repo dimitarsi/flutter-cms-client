@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
+import 'package:plenty_cms/service/models/new_upload.dart';
 import 'package:plenty_cms/service/models/story.dart';
 import 'package:plenty_cms/service/models/story_config.dart';
 import 'package:plenty_cms/widgets/form/file_picker_ui.dart';
@@ -77,7 +78,12 @@ class _StoryPageState extends State<StoryPage> {
 
           configs = configList.entities;
         });
-      });
+      }).catchError(
+        (error) {
+          print("Unable to fetch `getStoryBySlugOrId` - $error");
+        },
+        test: (error) => true,
+      );
     });
   }
 
@@ -140,6 +146,10 @@ class _StoryPageState extends State<StoryPage> {
       }
     } catch (e) {
       // do nothing
+      return Container(
+        color: Colors.orangeAccent,
+        child: Text("error $e"),
+      );
     }
 
     return Row(
@@ -147,75 +157,83 @@ class _StoryPageState extends State<StoryPage> {
     );
   }
 
+  List<NewUpload> _getFieldData(List<dynamic> data) {
+    return data.map((d) => NewUpload.fromJson(d)).toList();
+  }
+
   Iterable<Widget> getRows(Iterable<FieldRow> rows) {
     return rows.map((row) {
-      switch (row.type) {
-        case 'text':
-          return TextFormField(
-            initialValue: dataBag[row.label],
-            decoration: InputDecoration(
-                label: Text(row.displayName ?? row.label ?? "Unknown Field")),
-            onSaved: (newValue) {
-              dataBag[row.label!] = newValue;
-            },
-          );
-        case 'files':
-          return FilePickerUi(
-              client: widget.client,
-              fieldData: dataBag[row.label],
-              onFilesUploaded: (filesIds) {
-                var label = row.label;
-                if (label != null) {
-                  dataBag[label] = filesIds;
-                }
-              });
-        case 'date':
-          var now = DateTime.now();
-          var parsed = DateTime.tryParse(dataBag[row.label] ?? "");
-          var fistDate = now.copyWith(year: now.year - 30);
-          var lastDate = now.copyWith(year: now.year + 10);
+      try {
+        switch (row.type) {
+          case 'text':
+            return TextFormField(
+              initialValue: dataBag[row.label],
+              decoration: InputDecoration(
+                  label: Text(row.displayName ?? row.label ?? "Unknown Field")),
+              onSaved: (newValue) {
+                dataBag[row.label!] = newValue;
+              },
+            );
+          case 'files':
+            return FilePickerUi(
+                client: widget.client,
+                fieldData: _getFieldData(dataBag[row.label]),
+                onFilesUploaded: (List<NewUpload> files) {
+                  var label = row.label;
+                  if (label != null) {
+                    dataBag[label] = files;
+                  }
+                });
+          case 'date':
+            var now = DateTime.now();
+            var parsed = DateTime.tryParse(dataBag[row.label] ?? "");
+            var fistDate = now.copyWith(year: now.year - 30);
+            var lastDate = now.copyWith(year: now.year + 10);
 
-          return Row(
-            children: [
-              Flexible(
-                  child: IconButton(
-                onPressed: () async {
-                  var newDate = await showDatePicker(
-                    context: context,
+            return Row(
+              children: [
+                Flexible(
+                    child: IconButton(
+                  onPressed: () async {
+                    var newDate = await showDatePicker(
+                      context: context,
+                      initialDate: parsed ?? now,
+                      firstDate: fistDate,
+                      lastDate: lastDate,
+                    );
+                    if (newDate != null) {
+                      setState(() {
+                        if (row.label != null && row.label!.isNotEmpty) {
+                          dataBag[row.label!] = newDate.toUtc().toString();
+                        }
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.edit_calendar),
+                )),
+                Flexible(
+                  flex: 1,
+                  child: InputDatePickerFormField(
+                    onDateSaved: (value) {
+                      setState(() {
+                        if (row.label != null && row.label!.isNotEmpty) {
+                          dataBag[row.label!] = value.toUtc().toString();
+                        }
+                      });
+                    },
                     initialDate: parsed ?? now,
                     firstDate: fistDate,
                     lastDate: lastDate,
-                  );
-                  if (newDate != null) {
-                    setState(() {
-                      if (row.label != null && row.label!.isNotEmpty) {
-                        dataBag[row.label!] = newDate.toUtc().toString();
-                      }
-                    });
-                  }
-                },
-                icon: const Icon(Icons.edit_calendar),
-              )),
-              Flexible(
-                flex: 1,
-                child: InputDatePickerFormField(
-                  onDateSaved: (value) {
-                    setState(() {
-                      if (row.label != null && row.label!.isNotEmpty) {
-                        dataBag[row.label!] = value.toUtc().toString();
-                      }
-                    });
-                  },
-                  initialDate: parsed ?? now,
-                  firstDate: fistDate,
-                  lastDate: lastDate,
-                  keyboardType: TextInputType.datetime,
+                    keyboardType: TextInputType.datetime,
+                  ),
                 ),
-              ),
-            ],
-          );
-        default:
-          return Text("Unknown field type ${row.type}");
+              ],
+            );
+          default:
+            return Text("Unknown field type ${row.type}");
+        }
+      } catch (e) {
+        return Text("Unable to render field - ${row.displayName}");
       }
     });
   }

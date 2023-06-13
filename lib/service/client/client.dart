@@ -116,10 +116,14 @@ class RestClient {
         await get(Uri.parse("$storyUrl/$slugOrId"), headers: authHeader);
 
     if (response.statusCode < 300) {
-      return Story.fromJson(jsonDecode(response.body));
+      final decoded = jsonDecode(response.body);
+      final asJson = Story.fromJson(decoded);
+
+      return asJson;
     }
 
-    return null;
+    throw Error.safeToString(
+        "Ups something went wrong in `getStoryBySlugOrId`");
   }
 
   Future<LoginResponse> tryLogin(UserCredentials data) async {
@@ -155,5 +159,9 @@ class RestClient {
     }
 
     return [];
+  }
+
+  String getImageUrlFromHash(String id) {
+    return "$url/media/$id";
   }
 }

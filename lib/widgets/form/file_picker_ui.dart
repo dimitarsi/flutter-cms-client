@@ -2,7 +2,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/service/client/client.dart';
 
-typedef FilesUploadedHandler = void Function(List<String>);
+import '../../service/models/new_upload.dart';
+
+typedef FilesUploadedHandler = void Function(List<NewUpload>);
 
 class FilePickerUi extends StatefulWidget {
   FilePickerUi(
@@ -12,9 +14,8 @@ class FilePickerUi extends StatefulWidget {
       this.onFilesUploaded});
 
   final RestClient client;
-  final dynamic fieldData;
-  final List<String> listOfNewUploadIds = [];
-  final List<String> listOfNewUploadNames = [];
+  final List<NewUpload> fieldData;
+  final List<NewUpload> listOfNewUploads = [];
 
   final FilesUploadedHandler? onFilesUploaded;
 
@@ -30,51 +31,83 @@ class _FilePickerUiState extends State<FilePickerUi> {
         Text("Total ${(widget.fieldData ?? []).length}"),
         availableUploads(),
         pickButton(),
-        Text("tota files: ${widget.listOfNewUploadNames.length}"),
+        Text("Total files: ${widget.listOfNewUploads.length}"),
         pickList()
       ],
     );
   }
 
-  Widget availableUploads() {
-    if (widget.fieldData != null && widget.fieldData is List) {
-      List<dynamic> listOfIds = widget.fieldData;
-      // List<Widget> items = [];
+  Widget _leading(NewUpload f) {
+    final type = f.type ?? '';
+    if (type.startsWith('image') && f.id != null) {
+      return Image.network(widget.client.getImageUrlFromHash(f.id!),
+          height: 80, width: 80, fit: BoxFit.fill);
+    }
 
-      // for (var item in listOfIds) {
-      //   items.add(Text("id: $item"));
-      // }
+    if (type.startsWith('image') && f.id != null) {
+      return const Icon(Icons.image);
+    }
 
-      return SizedBox(
-        height: 300,
-        child: ListView.builder(
-          itemBuilder: (context, index) {
-            return ListTile(
-              title: Text("Hash: ${listOfIds[index]}"),
-              trailing: IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {
-                  setState(() {
-                    listOfIds.removeAt(index);
-                  });
-                },
-              ),
-            );
-          },
-          itemCount: listOfIds.length,
+    if (type.startsWith('video')) {
+      return const Icon(
+        Icons.video_file,
+        size: 50,
+      );
+    }
+
+    if (type.contains("pdf")) {
+      final style = Theme.of(context)
+          .textTheme
+          .displaySmall!
+          .copyWith(fontSize: 20, fontWeight: FontWeight.bold);
+      return Center(
+        child: Text(
+          "PDF",
+          style: style,
         ),
       );
     }
 
-    return Placeholder(
-      child: Text("Available Uploads"),
+    return const Icon(
+      Icons.file_present,
+      size: 50,
     );
-    // return ListView.builder(itemBuilder: uploadItem, itemCount: ,)
+  }
+
+  Widget availableUploads() {
+    List<dynamic> listOfIds = widget.fieldData;
+
+    return SizedBox(
+      height: 300,
+      child: ListView.builder(
+        itemBuilder: (context, index) {
+          final field = widget.fieldData.elementAt(index);
+
+          return ListTile(
+            title: Text(field.name),
+            subtitle: Text(field.id ?? '-1'),
+            leading: SizedBox(
+              width: 80,
+              child: _leading(field),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                listOfIds.removeAt(index);
+                _callback();
+                setState(() {});
+              },
+            ),
+          );
+        },
+        itemCount: listOfIds.length,
+      ),
+    );
   }
 
   Widget pickButton() {
     return ElevatedButton(
-        onPressed: _openFilePickDialog, child: Text("Select files"));
+        onPressed: _openFilePickDialog, child: const Text("Select files"));
   }
 
   Future<void> _openFilePickDialog() async {
@@ -84,7 +117,7 @@ class _FilePickerUiState extends State<FilePickerUi> {
     List<Future> waitList = [];
 
     for (PlatformFile file in pickedFiles?.files ?? []) {
-      widget.listOfNewUploadNames.add(file.name);
+      widget.listOfNewUploads.add(NewUpload(name: file.name));
     }
 
     final files = pickedFiles?.files;
@@ -93,10 +126,12 @@ class _FilePickerUiState extends State<FilePickerUi> {
       waitList.add(widget.client.uploadFiles(files));
 
       var added = await Future.wait(waitList);
-
+      var index = 0;
       for (final resp in added) {
         for (final fileResult in resp) {
-          widget.listOfNewUploadIds.add(fileResult['id']);
+          widget.listOfNewUploads[index].id = fileResult['id'];
+          widget.listOfNewUploads[index].type = fileResult['type'];
+          index++;
         }
       }
 
@@ -110,18 +145,17 @@ class _FilePickerUiState extends State<FilePickerUi> {
     return SizedBox(
       height: 300,
       child: ListView.builder(
-          itemCount: widget.listOfNewUploadNames.length,
+          itemCount: widget.listOfNewUploads.length,
           itemBuilder: (context, ind) {
             return ListTile(
               title:
-                  Text("Iteme ${widget.listOfNewUploadNames.elementAt(ind)}"),
-              leading: Icon(Icons.file_upload),
+                  Text("Item ${widget.listOfNewUploads.elementAt(ind).name}"),
+              leading: const Icon(Icons.file_upload),
               trailing: IconButton(
-                icon: Icon(Icons.delete_forever),
+                icon: const Icon(Icons.delete_forever),
                 onPressed: () {
                   setState(() {
-                    widget.listOfNewUploadNames.removeAt(ind);
-                    widget.listOfNewUploadIds.removeAt(ind);
+                    widget.listOfNewUploads.removeAt(ind);
                   });
                 },
               ),
@@ -131,9 +165,9 @@ class _FilePickerUiState extends State<FilePickerUi> {
   }
 
   void _callback() {
-    List<String> oldAndNewListItems = [
+    List<NewUpload> oldAndNewListItems = [
       ...widget.fieldData,
-      ...widget.listOfNewUploadIds
+      ...widget.listOfNewUploads
     ];
 
     widget.onFilesUploaded?.call(oldAndNewListItems);
