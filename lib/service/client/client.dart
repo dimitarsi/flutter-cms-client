@@ -32,6 +32,7 @@ class RestClient {
   Uri get logoutUrl => Uri.parse("$url/logout");
   Uri get usersUrl => Uri.parse("$url/users");
   Uri get attachmentsUrl => Uri.parse("$url/attachments");
+  Uri get validateTokenUrl => Uri.parse("$url/check");
 
   Future<StoryConfigResponse> getStoryConfig(String idOrSlug) async {
     var getStoryConfigUrlWithIdOrSlug = Uri.parse("$storyConfigUrl/$idOrSlug");
@@ -163,5 +164,18 @@ class RestClient {
 
   String getImageUrlFromHash(String id) {
     return "$url/media/$id";
+  }
+
+  Future<bool> validateToken() async {
+    if (token.isEmpty) {
+      return false;
+    }
+
+    try {
+      final data = await get(validateTokenUrl, headers: authHeader);
+      return data.statusCode == 200;
+    } catch (_e) {
+      return false;
+    }
   }
 }

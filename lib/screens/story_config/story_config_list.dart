@@ -22,7 +22,6 @@ class _StoryConfigListState extends State<StoryConfigList> {
   int page = 1;
   int pages = 0;
   bool loading = false;
-  String token = "";
 
   Iterable<StoryConfigResponse> items = [];
 
@@ -31,7 +30,6 @@ class _StoryConfigListState extends State<StoryConfigList> {
     super.initState();
 
     var auth = context.read<AuthCubit>();
-    token = auth.state.token ?? "";
 
     loadPage(page);
   }
@@ -112,8 +110,10 @@ class _StoryConfigListState extends State<StoryConfigList> {
     var medianPage = (pages / 2).floor();
 
     if (lowerBoundry > 2 && pages > 6) {
-      buttons.add(TextButton(onPressed: () => loadPage(1), child: const Text("1")));
-      buttons.add(TextButton(onPressed: () => loadPage(2), child: const Text("2")));
+      buttons.add(
+          TextButton(onPressed: () => loadPage(1), child: const Text("1")));
+      buttons.add(
+          TextButton(onPressed: () => loadPage(2), child: const Text("2")));
       buttons.add(const Text("..."));
     }
 

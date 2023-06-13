@@ -10,13 +10,11 @@ import '../service/client/client.dart';
 class AuthState {
   AuthState(
       {this.isLoggedIn = false,
-      this.token,
       this.firstName,
       this.lastName,
       this.loginError});
 
   bool isLoggedIn;
-  String? token;
   String? firstName;
   String? lastName;
 
@@ -61,7 +59,7 @@ class AuthCubit extends Cubit<AuthState> {
         timer = Timer(timeout, () => emit(AuthState()));
       } else if (token.isNotEmpty) {
         restClient.token = token;
-        emit(AuthState(isLoggedIn: data.isLoggedIn, token: token));
+        emit(AuthState(isLoggedIn: data.isLoggedIn));
         storage.setString("authToken", token);
       }
     } catch (e) {
@@ -104,5 +102,9 @@ class AuthCubit extends Cubit<AuthState> {
     var storage = await SharedPreferences.getInstance();
     storage.remove("authToken");
     emit(AuthState());
+  }
+
+  void userHasValidToken() {
+    emit(AuthState(isLoggedIn: true));
   }
 }

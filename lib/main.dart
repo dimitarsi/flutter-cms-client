@@ -27,37 +27,46 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   SharedPreferences.getInstance().then<void>(
-    (value) {
+    (value) async {
       restClient.token = value.getString("authToken") ?? "";
-      runApp(MyApp(
-        restClient: restClient,
-        token: value.getString("authToken"),
-      ));
+
+      runApp(MyApp(restClient: restClient));
     },
   ); // .catchError(() => runApp(MyApp(restClient: restClient)));
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key, this.token, required this.restClient});
+  MyApp({super.key, required this.restClient});
 
   RestClient restClient;
-
-  String? token;
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     var routes = GoRouter(
-      redirect: (context, state) {
+      redirect: (context, state) async {
         var auth = context.read<AuthCubit>();
 
         var isKnownPublicRoute = publicLocations.firstWhere(
             (element) => state.location.startsWith(element),
             orElse: () => '');
 
-        if (auth.state.isLoggedIn || isKnownPublicRoute != '') {
+        if (isKnownPublicRoute != '') {
           return null;
         }
+
+        final isValid = await restClient.validateToken();
+
+        if (isValid) {
+          if (auth.state.isLoggedIn == false) {
+            auth.userHasValidToken();
+          }
+
+          return null;
+        }
+
+        restClient.token = '';
+        auth.logout();
 
         return '/login';
       },
@@ -132,7 +141,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(create: (_) {
-          var state = AuthState(token: token, isLoggedIn: token != null);
+          var state = AuthState();
 
           return AuthCubit(state, restClient: restClient);
         }),
