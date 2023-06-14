@@ -7,11 +7,10 @@ import 'package:plenty_cms/main.dart';
 
 import 'screens/auth/login_page.dart';
 import 'screens/home/home_page.dart';
-import 'screens/pages/page.dart';
-import 'screens/story/list.dart';
-import 'screens/story/page.dart';
-import 'screens/story_config/story_config_list.dart';
-import 'screens/story_config/story_config_page.dart';
+import 'screens/content/list.dart';
+import 'screens/content/page.dart';
+import 'screens/content_types/story_config_list.dart';
+import 'screens/content_types/story_config_page.dart';
 import 'service/client/client.dart';
 import 'state/auth_cubit.dart';
 
@@ -53,54 +52,59 @@ class AppRouter {
     };
   }
 
+  static String homePath = "/";
+  static String loginPath = "/login";
+  static String logoutPath = "/logout";
+  static String resetPasswordPath = "/reset-password/:token";
+  static String contentTypeListPath = "/content-types";
+  static String contentTypeCreatePath = "/content-type";
+  static String contentTypeEditPath = "/content-type/:slug";
+  static String contentListPath = "/content";
+  static String contentEditPath = "/content/:slug";
+
+  static String getContentTypePath(String slug) => "/content-type/$slug";
+  static String getContentEditPath(String slug) => "/content/$slug";
+
   static List<RouteBase> _getRoutes(RestClient restClient) {
     return [
       GoRoute(
-        path: '/',
+        path: homePath,
         builder: (context, state) => const HomePage(),
       ),
       GoRoute(
-        path: '/login',
+        path: loginPath,
         name: 'login',
         builder: (context, state) => LoginPage(),
       ),
       GoRoute(
-        path: '/reset-password/:token',
+        path: resetPasswordPath,
         name: 'reset-password',
         builder: (context, state) =>
             LoginPage(resetToken: state.params['token']),
       ),
       GoRoute(
-          path: '/pages/:slug',
-          builder: (context, state) {
-            return PagesPage(
-              // key: state.pageKey,
-              slug: state.params['slug'] ?? 'default',
-            );
-          }),
-      GoRoute(
-          path: '/story-config-list',
+          path: contentTypeListPath,
           builder: (context, state) => StoryConfigList(restClient: restClient)),
       GoRoute(
-          path: '/story-configs/:slug',
+          path: contentTypeEditPath,
           builder: (context, state) => StoryConfigPage(
               slug: state.params['slug'] ?? '', client: restClient)),
       GoRoute(
-          path: '/story-configs',
+          path: contentTypeCreatePath,
           builder: (context, state) =>
               StoryConfigPage(slug: '', client: restClient)),
       GoRoute(
-        path: '/story-list',
+        path: contentListPath,
         builder: (context, state) => StoryListScaffold(
           client: restClient,
         ),
       ),
+      // GoRoute(
+      //     path: '/story',
+      //     builder: (context, state) =>
+      //         StoryPageScaffold(client: restClient, slug: '')),
       GoRoute(
-          path: '/story',
-          builder: (context, state) =>
-              StoryPageScaffold(client: restClient, slug: '')),
-      GoRoute(
-          path: '/story/:slug',
+          path: contentEditPath,
           builder: (context, state) => StoryPageScaffold(
                 slug: state.params['slug'] ?? '',
                 client: restClient,

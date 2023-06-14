@@ -1,6 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:plenty_cms/app_router.dart';
+import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/story.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
@@ -36,6 +37,10 @@ class _StoryListState extends State<StoryList> {
   void initState() {
     super.initState();
 
+    loadContentEntries();
+  }
+
+  void loadContentEntries() {
     widget.client.getStories().then<void>((value) => setState(
           () {
             stories = value.entities;
@@ -63,7 +68,7 @@ class _StoryListState extends State<StoryList> {
                 return ListTile(
                   title: Text(el.name!),
                   onTap: () {
-                    context.go("/story/${el.slug}");
+                    context.go(AppRouter.getContentEditPath(el.slug!));
                   },
                 );
               },
@@ -71,7 +76,36 @@ class _StoryListState extends State<StoryList> {
             ),
           ),
         ElevatedButton(
-            onPressed: () => context.go('/story'),
+            // TODO: show a bottomsheet and ask for the name
+            onPressed: () => {
+                  showModalBottomSheet(
+                      context: context,
+                      builder: (BuildContext context) {
+                        final controller = TextEditingController();
+                        return Column(
+                          children: [
+                            TextFormField(
+                              decoration: InputDecoration(label: Text("Title")),
+                              controller: controller,
+                            ),
+                            TextButton(
+                                onPressed: () async {
+                                  final newId = await widget.client.createStory(
+                                      Story(
+                                          configId: "",
+                                          data: {},
+                                          name: controller.text,
+                                          slug: slugify(controller.text)));
+                                  if (context.mounted) {
+                                    context.go(
+                                        AppRouter.getContentEditPath(newId));
+                                  }
+                                },
+                                child: Text("Create"))
+                          ],
+                        );
+                      })
+                },
             child: const Text("Create new Story"))
       ],
     );

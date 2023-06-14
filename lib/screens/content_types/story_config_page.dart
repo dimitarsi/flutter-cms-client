@@ -8,6 +8,8 @@ import 'package:plenty_cms/service/models/field_type.dart';
 import 'package:plenty_cms/service/models/story_config.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
+import '../../app_router.dart';
+
 class StoryConfigPage extends StatefulWidget {
   StoryConfigPage({super.key, required this.slug, required this.client});
 
@@ -477,7 +479,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                   if (GoRouter.of(context).canPop()) {
                     GoRouter.of(context).pop();
                   } else {
-                    context.go('/story-config-list');
+                    context.go(AppRouter.contentTypeListPath);
                   }
                 },
                 child: const Text("Cancel")),

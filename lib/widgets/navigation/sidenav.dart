@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:plenty_cms/app_router.dart';
+import 'package:plenty_cms/state/auth_cubit.dart';
 
 class SideNav extends Drawer {
   SideNav({super.key});
@@ -17,22 +20,23 @@ class SideNav extends Drawer {
     );
   }
 
-  final routesMap = [
-    ['/', 'Home', {}],
-    ['/login', 'Login', {}],
-    ['/story-config-list', 'Content Types', {}],
-    [
-      '/story-configs',
-      'Content Types Create',
-      {'slug': ''}
-    ],
-    ['/story-list', 'Story', {}]
-  ];
+  List<Map<String, dynamic>> routesMap() {
+    return [
+      {"path": AppRouter.homePath, "label": "Home", "params": {}},
+      {"path": AppRouter.loginPath, "label": "Login", "params": {}},
+      {
+        "path": AppRouter.contentTypeListPath,
+        "label": "Content Types",
+        "params": {}
+      },
+      {"path": AppRouter.contentListPath, "label": "Content", "params": {}},
+    ];
+  }
 
   List<Widget> routes(BuildContext context) {
-    final widgets = routesMap.map((element) {
-      final path = "${element.elementAt(0)}";
-      final label = "${element.elementAt(1)}";
+    final widgets = routesMap().map((element) {
+      final path = element['path'];
+      final label = element['label'];
 
       return TextButton(
         onPressed: () {

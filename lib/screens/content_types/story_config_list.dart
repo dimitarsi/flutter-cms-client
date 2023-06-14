@@ -7,6 +7,7 @@ import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 
+import '../../app_router.dart';
 import '../../service/models/story_config.dart';
 
 class StoryConfigList extends StatefulWidget {
@@ -88,8 +89,9 @@ class _StoryConfigListState extends State<StoryConfigList> {
         return ListTile(
           title: Text(el.name!),
           onTap: () {
-            if (el.slug != "invalid") {
-              context.go("/story-configs/${el.slug}");
+            final slug = el.slug ?? '';
+            if (slug.isNotEmpty && slug != "invalid") {
+              context.go(AppRouter.getContentTypePath(slug));
             }
           },
         );

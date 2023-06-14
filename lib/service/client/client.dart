@@ -38,7 +38,7 @@ class RestClient {
     var getStoryConfigUrlWithIdOrSlug = Uri.parse("$storyConfigUrl/$idOrSlug");
     var response =
         await get(getStoryConfigUrlWithIdOrSlug, headers: authHeader);
-
+    print("getStoryConfig $getStoryConfigUrlWithIdOrSlug");
     return StoryConfigResponse.fromJson(jsonDecode(response.body));
   }
 
@@ -81,8 +81,12 @@ class RestClient {
         headers: allHeaders, body: jsonEncode(data.toJson()));
   }
 
-  Future<void> createStory(Story story) async {
-    await post(storyUrl, headers: allHeaders, body: jsonEncode(story.toJson()));
+  Future<String> createStory(Story story) async {
+    final result = await post(storyUrl,
+        headers: allHeaders, body: jsonEncode(story.toJson()));
+    final json = jsonDecode(result.body);
+
+    return json['id'];
   }
 
   Future<void> updateStory(String slugOrId, Story story) async {

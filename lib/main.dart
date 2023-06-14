@@ -38,6 +38,7 @@ class MyApp extends StatelessWidget {
     return createProvider(MaterialApp.router(
       routerConfig: routes,
       title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue),
     ));
   }
