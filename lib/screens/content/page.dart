@@ -198,7 +198,7 @@ class _StoryPageState extends State<StoryPage> {
           case 'files':
             return FilePickerUi(
                 client: widget.client,
-                fieldData: _getFieldData(dataBag[row.label]),
+                fieldData: _getFieldData(dataBag[row.label] ?? []),
                 onFilesUploaded: (List<NewUpload> files) {
                   var label = row.label;
                   if (label != null) {

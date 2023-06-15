@@ -96,8 +96,7 @@ class AppRouter {
       GoRoute(
         path: contentListPath,
         builder: (context, state) => StoryListScaffold(
-          client: restClient,
-        ),
+            client: restClient, folder: state.queryParams["folder"]),
       ),
       // GoRoute(
       //     path: '/story',

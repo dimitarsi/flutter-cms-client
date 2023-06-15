@@ -28,6 +28,7 @@ class RestClient {
 
   Uri get storyConfigUrl => Uri.parse("$url/story-configs");
   Uri get storyUrl => Uri.parse("$url/stories");
+  Uri get storySearchUrl => Uri.parse("$url/stories/search");
   Uri get loginUrl => Uri.parse("$url/login");
   Uri get logoutUrl => Uri.parse("$url/logout");
   Uri get usersUrl => Uri.parse("$url/users");
@@ -38,7 +39,7 @@ class RestClient {
     var getStoryConfigUrlWithIdOrSlug = Uri.parse("$storyConfigUrl/$idOrSlug");
     var response =
         await get(getStoryConfigUrlWithIdOrSlug, headers: authHeader);
-    print("getStoryConfig $getStoryConfigUrlWithIdOrSlug");
+
     return StoryConfigResponse.fromJson(jsonDecode(response.body));
   }
 
@@ -94,9 +95,17 @@ class RestClient {
         headers: allHeaders, body: jsonEncode(story.toJson()));
   }
 
-  Future<RestResponse<Story>> getStories({page = 1}) async {
-    final response =
-        await get(Uri.parse("$storyUrl?page=$page"), headers: authHeader);
+  Future<RestResponse<Story>> getStories({page = 1, String? folder}) async {
+    var url = Uri.parse("$storySearchUrl");
+
+    if (folder != null && folder.isNotEmpty) {
+      url = url.replace(
+          queryParameters: <String, String>{"page": "$page", "folder": folder});
+    } else {
+      url = url.replace(queryParameters: <String, String>{"page": "$page"});
+    }
+
+    final response = await get(url, headers: authHeader);
     final body = jsonDecode(response.body);
 
     List<Story> items = [];

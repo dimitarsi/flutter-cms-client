@@ -1,30 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/app_router.dart';
-import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/story.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
+import 'modal.dart';
+
 class StoryListScaffold extends StatelessWidget {
-  const StoryListScaffold({required this.client, super.key});
+  const StoryListScaffold({required this.client, super.key, this.folder});
 
   final RestClient client;
+  final String? folder;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: SideNav(),
       appBar: AppBar(),
-      body: StoryList(client: client),
+      body: StoryList(client: client, folder: folder),
     );
   }
 }
 
 class StoryList extends StatefulWidget {
-  const StoryList({super.key, required this.client});
+  const StoryList({super.key, required this.client, this.folder});
 
   final RestClient client;
+  final String? folder;
 
   @override
   State<StoryList> createState() => _StoryListState();
@@ -41,11 +44,13 @@ class _StoryListState extends State<StoryList> {
   }
 
   void loadContentEntries() {
-    widget.client.getStories().then<void>((value) => setState(
-          () {
-            stories = value.entities;
-          },
-        ));
+    widget.client
+        .getStories(page: 1, folder: widget.folder)
+        .then<void>((value) => setState(
+              () {
+                stories = value.entities;
+              },
+            ));
   }
 
   @override
@@ -54,6 +59,26 @@ class _StoryListState extends State<StoryList> {
 
     return Column(
       children: [
+        if (widget.folder != null && widget.folder != '/')
+          ListTile(
+            title: Text(".."),
+            leading: SizedBox(
+              width: 40,
+              height: 40,
+              child: Icon(Icons.arrow_upward),
+            ),
+            onTap: () {
+              final parts = widget.folder?.split('/');
+
+              if (parts == null || parts.length == 1) {
+                context.push(AppRouter.contentListPath);
+                return;
+              }
+
+              final parent = parts.getRange(0, parts.length - 1).join("/");
+              context.push("${AppRouter.contentListPath}?folder=$parent");
+            },
+          ),
         if (availableItems.isEmpty)
           const Text("No Items available")
         else
@@ -65,10 +90,24 @@ class _StoryListState extends State<StoryList> {
                   return const SizedBox.shrink();
                 }
 
+                final iconType = el.type == 'folder'
+                    ? Icon(Icons.folder)
+                    : Icon(Icons.edit_document);
+
                 return ListTile(
                   title: Text(el.name!),
+                  leading: SizedBox(
+                    height: 40,
+                    width: 40,
+                    child: iconType,
+                  ),
                   onTap: () {
-                    context.go(AppRouter.getContentEditPath(el.slug!));
+                    if (el.type == 'folder') {
+                      context.push(
+                          "${AppRouter.contentListPath}?folder=${el.slug}");
+                    } else {
+                      context.go(AppRouter.getContentEditPath(el.slug!));
+                    }
                   },
                 );
               },
@@ -76,38 +115,28 @@ class _StoryListState extends State<StoryList> {
             ),
           ),
         ElevatedButton(
-            // TODO: show a bottomsheet and ask for the name
-            onPressed: () => {
-                  showModalBottomSheet(
-                      context: context,
-                      builder: (BuildContext context) {
-                        final controller = TextEditingController();
-                        return Column(
-                          children: [
-                            TextFormField(
-                              decoration: InputDecoration(label: Text("Title")),
-                              controller: controller,
-                            ),
-                            TextButton(
-                                onPressed: () async {
-                                  final newId = await widget.client.createStory(
-                                      Story(
-                                          configId: "",
-                                          data: {},
-                                          name: controller.text,
-                                          slug: slugify(controller.text)));
-                                  if (context.mounted) {
-                                    context.go(
-                                        AppRouter.getContentEditPath(newId));
-                                  }
-                                },
-                                child: Text("Create"))
-                          ],
-                        );
-                      })
-                },
-            child: const Text("Create new Story"))
+            onPressed: openBottomSheet, child: const Text("Add New Item"))
       ],
     );
+  }
+
+  void openBottomSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return ContentModalCreate(
+            client: widget.client,
+            folder: widget.folder ?? "/",
+            onFolderCreated: () {
+              loadContentEntries();
+              context.pop();
+            },
+            onDocumentCreated: (newId) {
+              if (context.mounted) {
+                context.go(AppRouter.getContentEditPath(newId));
+              }
+            },
+          );
+        });
   }
 }
