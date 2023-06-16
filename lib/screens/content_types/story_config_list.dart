@@ -1,19 +1,18 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:plenty_cms/screens/content_types/modal.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
-import 'package:plenty_cms/state/auth_cubit.dart';
 
 import '../../app_router.dart';
 import '../../service/models/story_config.dart';
 
 class StoryConfigList extends StatefulWidget {
-  const StoryConfigList({super.key, required this.restClient});
+  const StoryConfigList({super.key, required this.client});
 
-  final RestClient restClient;
+  final RestClient client;
 
   @override
   State<StoryConfigList> createState() => _StoryConfigListState();
@@ -22,21 +21,17 @@ class StoryConfigList extends StatefulWidget {
 class _StoryConfigListState extends State<StoryConfigList> {
   int page = 1;
   int pages = 0;
-  bool loading = false;
 
   Iterable<StoryConfigResponse> items = [];
 
   @override
   void initState() {
     super.initState();
-
-    var auth = context.read<AuthCubit>();
-
     loadPage(page);
   }
 
   void loadPage(int nextPage) async {
-    var data = await widget.restClient.listStoryConfigs(page: nextPage);
+    var data = await widget.client.listStoryConfigs(page: nextPage);
 
     setState(
       () {
@@ -45,7 +40,6 @@ class _StoryConfigListState extends State<StoryConfigList> {
         } catch (_e) {
           print("error - $_e");
         }
-        loading = false;
         page = nextPage;
       },
     );
@@ -58,18 +52,16 @@ class _StoryConfigListState extends State<StoryConfigList> {
       appBar: AppBar(),
       body: Column(
         children: [
-          if (loading)
-            const Text("Loading")
-          else ...[
-            Expanded(child: list()),
-            Container(
-              height: 20,
-            ),
-            pagination(),
-            Container(
-              height: 20,
-            )
-          ],
+          Expanded(child: list()),
+          Container(
+            height: 20,
+          ),
+          pagination(),
+          Container(
+            height: 20,
+          ),
+          ElevatedButton(
+              onPressed: openBottomSheet, child: const Text("Add New Item"))
         ],
       ),
     );
@@ -179,5 +171,18 @@ class _StoryConfigListState extends State<StoryConfigList> {
         ),
       ],
     );
+  }
+
+  void openBottomSheet() {
+    showModalBottomSheet(
+        context: context,
+        builder: (builder) {
+          return ContentTypeCreateModal(
+            client: widget.client,
+            onCreate: (id) {
+              context.go(AppRouter.getContentTypePath(id));
+            },
+          );
+        });
   }
 }

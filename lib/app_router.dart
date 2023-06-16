@@ -84,7 +84,7 @@ class AppRouter {
       ),
       GoRoute(
           path: contentTypeListPath,
-          builder: (context, state) => StoryConfigList(restClient: restClient)),
+          builder: (context, state) => StoryConfigList(client: restClient)),
       GoRoute(
           path: contentTypeEditPath,
           builder: (context, state) => StoryConfigPage(

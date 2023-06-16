@@ -72,9 +72,13 @@ class RestClient {
         pagination: Pagination.fromJson(body["pagination"]), entities: items);
   }
 
-  Future<void> createStoryConfig(StoryConfigRequest data) async {
-    await post(storyConfigUrl,
+  Future<String> createStoryConfig(StoryConfigRequest data) async {
+    final result = await post(storyConfigUrl,
         headers: allHeaders, body: jsonEncode(data.toJson()));
+
+    final json = jsonDecode(result.body);
+
+    return json['id'];
   }
 
   Future<void> updateStoryConfig(StoryConfigRequest data) async {
