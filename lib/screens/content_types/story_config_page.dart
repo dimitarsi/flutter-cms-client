@@ -173,8 +173,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   Widget nameSection() {
     return SizedBox(
       width: min(MediaQuery.of(context).size.width, 1024),
-      child: Expanded(
-          child: TextFormField(
+      child: TextFormField(
         controller: groupNameController,
         decoration: groupNameLabel,
         validator: (value) {
@@ -182,7 +181,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
               ? "Content Type Name is required"
               : null;
         },
-      )),
+      ),
     );
   }
 
