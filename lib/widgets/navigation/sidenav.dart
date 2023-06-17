@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/app_router.dart';
-import 'package:plenty_cms/state/auth_cubit.dart';
 
 class SideNav extends Drawer {
-  SideNav({super.key});
+  const SideNav({super.key});
 
   @override
   Widget build(BuildContext context) {

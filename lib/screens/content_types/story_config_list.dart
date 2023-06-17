@@ -48,7 +48,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: SideNav(),
+      drawer: const SideNav(),
       appBar: AppBar(),
       body: Column(
         children: [

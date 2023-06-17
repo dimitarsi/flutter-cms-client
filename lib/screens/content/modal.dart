@@ -77,16 +77,16 @@ class _ContentModalCreateState extends State<ContentModalCreate> {
         },
       );
     } else {
-      dropdownSelect = SizedBox.shrink();
+      dropdownSelect = const SizedBox.shrink();
     }
 
     return Form(
       key: widget.formKey,
       child: Column(
         children: [
-          if (loading) Icon(Icons.recycling),
+          if (loading) const Icon(Icons.recycling),
           TextFormField(
-            decoration: InputDecoration(label: Text("Title")),
+            decoration: const InputDecoration(label: Text("Title")),
             validator: (value) {
               return (value ?? "").isEmpty ? "Title is required" : null;
             },
@@ -98,7 +98,7 @@ class _ContentModalCreateState extends State<ContentModalCreate> {
           Text("Type $type - ${getDropdownItems().length}"),
           Row(
             children: [
-              Text("Create Folder"),
+              const Text("Create Folder"),
               Switch(
                 value: type == "folder",
                 onChanged: (isFolder) {

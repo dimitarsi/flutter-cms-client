@@ -141,7 +141,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: SideNav(),
+      drawer: const SideNav(),
       appBar: AppBar(),
       floatingActionButton: addFieldsButton(),
       body: DropdownButtonHideUnderline(

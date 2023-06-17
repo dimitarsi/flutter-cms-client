@@ -7,7 +7,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: SideNav(),
+      drawer: const SideNav(),
       appBar: AppBar(
         automaticallyImplyLeading: true,
       ),

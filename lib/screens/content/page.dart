@@ -18,7 +18,7 @@ class StoryPageScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: SideNav(),
+      drawer: const SideNav(),
       appBar: AppBar(),
       body: StoryPage(
         client: client,

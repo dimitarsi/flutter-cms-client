@@ -27,7 +27,7 @@ class _ContentTypeCreateModalState extends State<ContentTypeCreateModal> {
         child: Column(
           children: [
             TextFormField(
-              decoration: InputDecoration(label: Text("Name")),
+              decoration: const InputDecoration(label: Text("Name")),
               validator: (val) {
                 return val == null || val.isEmpty ? "Required" : null;
               },
@@ -62,7 +62,7 @@ class _ContentTypeCreateModalState extends State<ContentTypeCreateModal> {
                     context.pop();
                   }
                 },
-                child: Text("Create"))
+                child: const Text("Create"))
           ],
         ));
   }

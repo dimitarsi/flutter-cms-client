@@ -16,7 +16,7 @@ class StoryListScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: SideNav(),
+      drawer: const SideNav(),
       appBar: AppBar(),
       body: StoryList(client: client, folder: folder),
     );
@@ -61,8 +61,8 @@ class _StoryListState extends State<StoryList> {
       children: [
         if (widget.folder != null && widget.folder != '/')
           ListTile(
-            title: Text(".."),
-            leading: SizedBox(
+            title: const Text(".."),
+            leading: const SizedBox(
               width: 40,
               height: 40,
               child: Icon(Icons.arrow_upward),
@@ -91,8 +91,8 @@ class _StoryListState extends State<StoryList> {
                 }
 
                 final iconType = el.type == 'folder'
-                    ? Icon(Icons.folder)
-                    : Icon(Icons.edit_document);
+                    ? const Icon(Icons.folder)
+                    : const Icon(Icons.edit_document);
 
                 return ListTile(
                   title: Text(el.name!),
