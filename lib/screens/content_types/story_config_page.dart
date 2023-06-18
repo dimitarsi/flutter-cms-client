@@ -329,8 +329,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                 flex: 3,
                 child: inputField,
               ),
-              // if (element.type == 'reference')
-              //   ...referenceFieldsList(element),
+              if (element.type == FieldType.ref) referenceFieldsList(element),
               Flexible(
                 flex: 2,
                 child: Column(
@@ -502,39 +501,48 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     );
   }
 
-  List<Widget> referenceFieldsList(GroupConfig element) {
-    List<DropdownMenuItem<String>> items = referenceFields.map((e) {
-      return DropdownMenuItem<String>(value: e.slug, child: Text(e.name!));
+  Widget referenceFieldsList(FieldRow element) {
+    List<DropdownMenuEntry<String>> items = referenceFields.map((e) {
+      return DropdownMenuEntry<String>(
+        value: e.slug!,
+        label: e.name!,
+      );
     }).toList();
-    return [
-      Expanded(
-        flex: 1,
-        child: DropdownButton<String>(
-          items: items,
-          value: referenceListValue,
-          onChanged: (Object? value) {
-            setState(() {
-              referenceListValue = value.toString();
-            });
-          },
-        ),
+
+    // List<Widget> minMaxFields = [
+    //   const SizedBox(
+    //     width: 50,
+    //     child: TextField(
+    //         keyboardType:
+    //             TextInputType.numberWithOptions(signed: false, decimal: false),
+    //         decoration: InputDecoration(
+    //           label: Text("Min count"),
+    //         )),
+    //   ),
+    //   const SizedBox(
+    //     width: 50,
+    //     child: TextField(
+    //         keyboardType:
+    //             TextInputType.numberWithOptions(signed: false, decimal: false),
+    //         decoration: InputDecoration(label: Text("Max count"))),
+    //   ),
+    // ];
+
+    return Expanded(
+      flex: 1,
+      child: DropdownMenu<String>(
+        label: Text("References"),
+        initialSelection: element.data?['refType'] ?? '',
+        dropdownMenuEntries: items,
+        onSelected: (String? value) {
+          setState(() {
+            // referenceListValue = value.toString();
+            element.data ??= {};
+            element.data!['refType'] = value ?? '';
+          });
+        },
       ),
-      const SizedBox(
-        width: 50,
-        child: TextField(
-            keyboardType:
-                TextInputType.numberWithOptions(signed: false, decimal: false),
-            decoration: InputDecoration(
-              label: Text("Min count"),
-            )),
-      ),
-      const SizedBox(
-        width: 50,
-        child: TextField(
-            keyboardType:
-                TextInputType.numberWithOptions(signed: false, decimal: false),
-            decoration: InputDecoration(label: Text("Max count"))),
-      ),
-    ];
+    );
+    // ...minMaxFields,
   }
 }

@@ -5,8 +5,15 @@ part 'story.g.dart';
 @JsonSerializable()
 class Story {
   Story(
-      {this.name, this.slug, this.data, this.type, this.configId, this.folder});
+      {this.id,
+      this.name,
+      this.slug,
+      this.data,
+      this.type,
+      this.configId,
+      this.folder});
 
+  String? id;
   String? name;
   String? slug;
   String? type;

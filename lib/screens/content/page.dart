@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/new_upload.dart';
@@ -250,6 +251,26 @@ class _StoryPageState extends State<StoryPage> {
                 ),
               ],
             );
+          case 'ref':
+            return Row(
+              children: [
+                if (dataBag[row.label!] != null)
+                  Text("Selected - ${dataBag[row.label!]['id']}"),
+                ElevatedButton(
+                    onPressed: () {
+                      openRefModal(row.data?['refType'] ?? '',
+                          onSelect: (refId) {
+                        setState(() {
+                          dataBag[row.label!] = {
+                            'id': refId,
+                            'type': row.data?['refType']
+                          };
+                        });
+                      });
+                    },
+                    child: Text("Select a reference")),
+              ],
+            );
           default:
             return Text("Unknown field type ${row.type}");
         }
@@ -318,5 +339,64 @@ class _StoryPageState extends State<StoryPage> {
   ElevatedButton saveButton() {
     return ElevatedButton(
         onPressed: createOrUpdateStory, child: const Text("Save"));
+  }
+
+  bool isRefListLoading = false;
+  List<Story> modalRefList = [];
+
+  void openRefModal(String contentType,
+      {void Function(String refId)? onSelect}) async {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          if (isRefListLoading) {
+            return Icon(Icons.event_busy);
+          }
+
+          return ListView.builder(
+            itemBuilder: (context, index) {
+              final name = modalRefList[index].name;
+              final refId = modalRefList[index].slug;
+              final configId = modalRefList[index].configId;
+              List<StoryConfigResponse>? config =
+                  configs.where((element) => element.id == configId).toList();
+
+              if (name == null || refId == null || config.isEmpty) {
+                return SizedBox.shrink();
+              }
+
+              final isSameType = config[0].slug == contentType;
+
+              return ListTile(
+                title: Text(
+                  name,
+                  style: TextStyle(
+                      color: isSameType ? Colors.black : Colors.white70),
+                ),
+                subtitle: Text("configs found - ${config.length}"),
+                onTap: () {
+                  if (isSameType && onSelect != null) {
+                    onSelect(refId);
+                    context.pop();
+                  }
+                },
+              );
+            },
+            itemCount: modalRefList.length,
+          );
+        });
+
+    if (modalRefList.isEmpty) {
+      setState(() {
+        isRefListLoading = true;
+      });
+
+      final items = await widget.client.getStories();
+
+      setState(() {
+        modalRefList = items.entities.toList();
+        isRefListLoading = false;
+      });
+    }
   }
 }
