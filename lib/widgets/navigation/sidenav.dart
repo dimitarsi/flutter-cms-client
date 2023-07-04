@@ -28,6 +28,11 @@ class SideNav extends Drawer {
         "params": {}
       },
       {"path": AppRouter.contentListPath, "label": "Content", "params": {}},
+      {
+        "path": AppRouter.componentsListPath,
+        "label": "Components",
+        "params": {}
+      }
     ];
   }
 

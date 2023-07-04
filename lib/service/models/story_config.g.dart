@@ -109,11 +109,12 @@ Field _$FieldFromJson(Map<String, dynamic> json) => Field(
       rows: (json['rows'] as List<dynamic>?)
           ?.map((e) => FieldRow.fromJson(e as Map<String, dynamic>))
           .toList(),
-    );
+    )..id = json['_id'] as String?;
 
 Map<String, dynamic> _$FieldToJson(Field instance) => <String, dynamic>{
       'groupName': instance.groupName,
       'rows': instance.rows,
+      '_id': instance.id,
     };
 
 FieldRow _$FieldRowFromJson(Map<String, dynamic> json) => FieldRow(

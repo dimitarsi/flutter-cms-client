@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/main.dart';
+import 'package:plenty_cms/screens/components/components_list.dart';
+import 'package:plenty_cms/screens/components/components_page.dart';
+import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 import 'screens/auth/login_page.dart';
 import 'screens/home/home_page.dart';
@@ -61,9 +64,12 @@ class AppRouter {
   static String contentTypeEditPath = "/content-type/:slug";
   static String contentListPath = "/content";
   static String contentEditPath = "/content/:slug";
+  static String componentsListPath = "/components";
+  static String componentsEditPath = "/components/:slug";
 
   static String getContentTypePath(String slug) => "/content-type/$slug";
   static String getContentEditPath(String slug) => "/content/$slug";
+  static String getComponentEditPath(String slug) => "/components/$slug";
 
   static List<RouteBase> _getRoutes(RestClient restClient) {
     return [
@@ -97,6 +103,25 @@ class AppRouter {
         path: contentListPath,
         builder: (context, state) => StoryListScaffold(
             client: restClient, folder: state.queryParams["folder"]),
+      ),
+      GoRoute(
+        path: componentsListPath,
+        builder: (context, state) => Scaffold(
+          drawer: SideNav(),
+          appBar: AppBar(),
+          body: ComponentListPage(client: restClient),
+        ),
+      ),
+      GoRoute(
+        path: componentsEditPath,
+        builder: (context, state) => Scaffold(
+          drawer: SideNav(),
+          appBar: AppBar(),
+          body: ComponentEditPage(
+            client: restClient,
+            componentId: state.params['slug'] ?? '',
+          ),
+        ),
       ),
       // GoRoute(
       //     path: '/story',

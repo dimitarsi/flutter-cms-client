@@ -28,6 +28,7 @@ class RestClient {
 
   Uri get storyConfigUrl => Uri.parse("$url/story-configs");
   Uri get storyUrl => Uri.parse("$url/stories");
+  Uri get componentsUrl => Uri.parse("$url/components");
   Uri get storySearchUrl => Uri.parse("$url/stories/search");
   Uri get loginUrl => Uri.parse("$url/login");
   Uri get logoutUrl => Uri.parse("$url/logout");
@@ -181,6 +182,34 @@ class RestClient {
 
   String getImageUrlFromHash(String id) {
     return "$url/media/$id";
+  }
+
+  Future<RestResponse<Field>> getComponents({page = 1}) async {
+    final componentUrlWithPage = componentsUrl.replace(query: "page=$page");
+
+    try {
+      final result = await get(componentUrlWithPage, headers: authHeader);
+      final body = jsonDecode(result.body);
+
+      if (body["pagination"] == null || body["items"] == null) {
+        return RestResponse(hasError: true);
+      }
+
+      final List<Field> items = [];
+
+      if (body['items'] != null) {
+        for (final item in body['items']) {
+          items.add(Field.fromJson(item));
+        }
+      }
+
+      final response = RestResponse<Field>(
+          entities: items, pagination: Pagination.fromJson(body['pagination']));
+
+      return response;
+    } catch (err) {
+      rethrow;
+    }
   }
 
   Future<bool> validateToken() async {

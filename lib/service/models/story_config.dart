@@ -75,6 +75,9 @@ class Field {
   String? groupName;
   List<FieldRow>? rows;
 
+  @JsonKey(name: "_id")
+  String? id;
+
   factory Field.fromJson(Map<String, dynamic> json) => _$FieldFromJson(json);
   Map<String, dynamic> toJson() => _$FieldToJson(this);
 }
