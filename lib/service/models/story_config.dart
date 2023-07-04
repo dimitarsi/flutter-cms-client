@@ -81,8 +81,8 @@ class Field {
 
 @JsonSerializable()
 class FieldRow {
-  FieldRow({this.width, this.label, this.displayName, this.type, this.data});
-  String? label;
+  FieldRow({this.width, this.slug, this.displayName, this.type, this.data});
+  String? slug;
   String? displayName;
   String? type;
   String? width;

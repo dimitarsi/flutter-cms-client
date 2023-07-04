@@ -171,16 +171,17 @@ class _StoryPageState extends State<StoryPage> {
         switch (row.type) {
           case 'text':
             return TextFormField(
-              initialValue: dataBag[row.label],
+              initialValue: dataBag[row.displayName],
               decoration: InputDecoration(
-                  label: Text(row.displayName ?? row.label ?? "Unknown Field")),
+                  label: Text(
+                      row.displayName ?? row.displayName ?? "Unknown Field")),
               onSaved: (newValue) {
-                dataBag[row.label!] = newValue;
+                dataBag[row.displayName!] = newValue;
               },
             );
           case 'number':
             return TextFormField(
-              initialValue: dataBag[row.label],
+              initialValue: dataBag[row.displayName],
               validator: (value) {
                 final res = double.tryParse(value ?? "");
 
@@ -191,24 +192,24 @@ class _StoryPageState extends State<StoryPage> {
                 return null;
               },
               decoration: InputDecoration(
-                  label: Text(row.displayName ?? row.label ?? "Unknown Field")),
+                  label: Text(row.displayName ?? "Unknown Field")),
               onSaved: (newValue) {
-                dataBag[row.label!] = newValue;
+                dataBag[row.displayName!] = newValue;
               },
             );
           case 'files':
             return FilePickerUi(
                 client: widget.client,
-                fieldData: _getFieldData(dataBag[row.label] ?? []),
+                fieldData: _getFieldData(dataBag[row.displayName] ?? []),
                 onFilesUploaded: (List<NewUpload> files) {
-                  var label = row.label;
+                  var label = row.slug;
                   if (label != null) {
                     dataBag[label] = files;
                   }
                 });
           case 'date':
             var now = DateTime.now();
-            var parsed = DateTime.tryParse(dataBag[row.label] ?? "");
+            var parsed = DateTime.tryParse(dataBag[row.data] ?? "");
             var fistDate = now.copyWith(year: now.year - 30);
             var lastDate = now.copyWith(year: now.year + 10);
 
@@ -225,8 +226,8 @@ class _StoryPageState extends State<StoryPage> {
                     );
                     if (newDate != null) {
                       setState(() {
-                        if (row.label != null && row.label!.isNotEmpty) {
-                          dataBag[row.label!] = newDate.toUtc().toString();
+                        if (row.slug != null && row.slug!.isNotEmpty) {
+                          dataBag[row.slug!] = newDate.toUtc().toString();
                         }
                       });
                     }
@@ -238,8 +239,8 @@ class _StoryPageState extends State<StoryPage> {
                   child: InputDatePickerFormField(
                     onDateSaved: (value) {
                       setState(() {
-                        if (row.label != null && row.label!.isNotEmpty) {
-                          dataBag[row.label!] = value.toUtc().toString();
+                        if (row.slug != null && row.slug!.isNotEmpty) {
+                          dataBag[row.slug!] = value.toUtc().toString();
                         }
                       });
                     },
@@ -254,14 +255,14 @@ class _StoryPageState extends State<StoryPage> {
           case 'ref':
             return Row(
               children: [
-                if (dataBag[row.label!] != null)
-                  Text("Selected - ${dataBag[row.label!]['id']}"),
+                if (dataBag[row.slug!] != null)
+                  Text("Selected - ${dataBag[row.slug!]['id']}"),
                 ElevatedButton(
                     onPressed: () {
                       openRefModal(row.data?['refType'] ?? '',
                           onSelect: (refId) {
                         setState(() {
-                          dataBag[row.label!] = {
+                          dataBag[row.slug!] = {
                             'id': refId,
                             'type': row.data?['refType']
                           };

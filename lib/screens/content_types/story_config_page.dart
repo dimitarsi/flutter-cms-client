@@ -188,7 +188,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   void _addField() {
     FieldRow newRow = FieldRow(
         width: '100%',
-        label: 'field_00',
+        slug: 'field_00',
         displayName: 'Field 00',
         type: FieldType.text);
 
@@ -308,7 +308,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
       initialValue: element.displayName,
       onSaved: (value) {
         element.displayName = value.toString();
-        element.label = slugify(value ?? '');
+        element.slug = slugify(value ?? '');
       },
     );
   }

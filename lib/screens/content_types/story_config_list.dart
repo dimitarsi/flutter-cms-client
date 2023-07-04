@@ -68,14 +68,14 @@ class _StoryConfigListState extends State<StoryConfigList> {
   }
 
   Widget list() {
-    final count = items.where((element) => element.name != null).length;
-
     return ListView.builder(
       itemBuilder: (context, index) {
         var el = items.elementAt(index);
 
         if (el.name == null) {
-          return const SizedBox.shrink();
+          return ListTile(
+            title: Text("Missing `name` property of item with Id: ${el.id}"),
+          );
         }
 
         return ListTile(
@@ -88,7 +88,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
           },
         );
       },
-      itemCount: count,
+      itemCount: items.length,
     );
   }
 

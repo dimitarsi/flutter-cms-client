@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -39,7 +38,6 @@ class LoginFormController {
   TextEditingController password = TextEditingController();
 
   UserCredentials getUserCredentials() {
-    print("Credentials ${email.text} | ${password.text}");
     return UserCredentials(email: email.text, password: password.text);
   }
 }
