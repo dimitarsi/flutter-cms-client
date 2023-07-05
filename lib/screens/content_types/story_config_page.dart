@@ -3,19 +3,20 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
+import 'package:plenty_cms/screens/content_types/settings_modal.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/field_type.dart';
 import 'package:plenty_cms/service/models/story_config.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 import '../../app_router.dart';
+import 'dropdown.dart';
 
 class StoryConfigPage extends StatefulWidget {
   StoryConfigPage({super.key, required this.slug, required this.client});
 
-  String slug;
-
-  RestClient client;
+  final String slug;
+  final RestClient client;
   final GlobalKey<FormState> contentTypeFormKey = GlobalKey();
 
   @override
@@ -33,76 +34,6 @@ class PaddedText extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Text(data),
     );
-  }
-}
-
-var dropdownOptions = [
-  DropdownMenuEntry(
-    value: FieldType.text,
-    label: "Text",
-  ),
-  DropdownMenuEntry(
-    value: FieldType.number,
-    label: "Number",
-  ),
-  DropdownMenuEntry(
-    value: FieldType.date,
-    label: "Date",
-  ),
-  DropdownMenuEntry(
-    value: FieldType.files,
-    label: "Files",
-  ),
-  DropdownMenuEntry(
-    value: FieldType.list,
-    label: "List",
-  ),
-  DropdownMenuEntry(
-    value: FieldType.ref,
-    label: "Reference",
-  ),
-  DropdownMenuEntry(
-    value: FieldType.component,
-    label: "Component",
-  ),
-];
-
-class GroupConfig {
-  GroupConfig(
-      {required this.displayName,
-      required this.type,
-      this.width = '100%',
-      this.value = '',
-      this.label = ''}) {
-    if (label.isEmpty) {
-      label = displayName.replaceAll(RegExp(r'\s+'), "_").toLowerCase();
-    }
-
-    controller =
-        TextEditingController.fromValue(TextEditingValue(text: displayName));
-  }
-
-  String label;
-  String displayName;
-  String type;
-  String width;
-  String value;
-  late TextEditingController controller;
-  final int _uniqId = Random.secure().nextInt(999);
-  final int _uniqIdAgain = Random.secure().nextInt(999);
-
-  String get uuid => "$_uniqId-$_uniqIdAgain";
-
-  bool showSettings = false;
-  bool hasDefaultValue = false;
-
-  Map<String, String> toJson() {
-    return {
-      "label": label,
-      "displayName": displayName,
-      "type": type,
-      "width": width,
-    };
   }
 }
 
@@ -329,48 +260,26 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                 flex: 3,
                 child: inputField,
               ),
-              if (element.type == FieldType.ref) referenceFieldsList(element),
               Flexible(
                 flex: 2,
-                child: Column(
-                  children: [
-                    DropdownMenu(
-                      label: const Text("Field Type"),
-                      initialSelection: element.type,
-                      dropdownMenuEntries: dropdownOptions,
-                      onSelected: (value) {
-                        setState(() {
-                          element.type = value.toString();
-                        });
-                      },
-                    ),
-                  ],
+                child: ContentTypeDropdown(
+                  element: element,
+                  onSelected: () => setState(() {}),
                 ),
               ),
-              Flexible(
-                  flex: 1,
-                  child: DropdownMenu(
-                    label: const Text("Width"),
-                    initialSelection: element.width ?? "100",
-                    onSelected: (value) {
-                      setState(() {
-                        element.width = value;
-                      });
-                    },
-                    dropdownMenuEntries: const [
-                      DropdownMenuEntry(label: "100%", value: "100"),
-                      DropdownMenuEntry(label: "66%", value: "66"),
-                      DropdownMenuEntry(label: "50%", value: "50"),
-                      DropdownMenuEntry(label: "33%", value: "30"),
-                    ],
-                  )),
-              // TextButton(
-              //     onPressed: () {
-              //       setState(() {
-              //         element.showSettings = !element.showSettings;
-              //       });
-              //     },
-              //     child: const Icon(Icons.settings))
+              IconButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                        context: context,
+                        builder: (context) {
+                          return FieldSettingsModal(
+                            referenceFields: referenceFields.toList(),
+                            element: element,
+                            onSelected: () => setState(() {}),
+                          );
+                        });
+                  },
+                  icon: Icon(Icons.settings)),
               _removeButton(() {
                 field.rows?.remove(element);
               })
@@ -398,53 +307,6 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
             Icons.delete,
             color: Colors.red,
           )),
-    );
-  }
-
-  Widget elementSettings(GroupConfig element) {
-    if (!element.showSettings) {
-      return Container();
-    }
-
-    return Column(
-      children: [
-        const Text("Settings"),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              width: 100,
-              child: TextField(
-                decoration: InputDecoration(labelText: "Width"),
-              ),
-            ),
-            const SizedBox(
-              width: 20,
-              height: 20,
-            ),
-            if (['text', 'number']
-                    .indexWhere((options) => options == element.type) >
-                -1)
-              SizedBox(
-                width: 100,
-                child: TextField(
-                    decoration:
-                        const InputDecoration(labelText: "Default Value"),
-                    keyboardType: element.type == 'number'
-                        ? TextInputType.number
-                        : TextInputType.text),
-              ),
-            if (element.type == 'date')
-              Row(
-                children: [
-                  const Text("Set current date as default:"),
-                  Switch(value: true, onChanged: (v) {})
-                ],
-              )
-          ],
-        ),
-      ],
     );
   }
 
@@ -499,50 +361,5 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
         ),
       ),
     );
-  }
-
-  Widget referenceFieldsList(FieldRow element) {
-    List<DropdownMenuEntry<String>> items = referenceFields.map((e) {
-      return DropdownMenuEntry<String>(
-        value: e.slug!,
-        label: e.name!,
-      );
-    }).toList();
-
-    // List<Widget> minMaxFields = [
-    //   const SizedBox(
-    //     width: 50,
-    //     child: TextField(
-    //         keyboardType:
-    //             TextInputType.numberWithOptions(signed: false, decimal: false),
-    //         decoration: InputDecoration(
-    //           label: Text("Min count"),
-    //         )),
-    //   ),
-    //   const SizedBox(
-    //     width: 50,
-    //     child: TextField(
-    //         keyboardType:
-    //             TextInputType.numberWithOptions(signed: false, decimal: false),
-    //         decoration: InputDecoration(label: Text("Max count"))),
-    //   ),
-    // ];
-
-    return Expanded(
-      flex: 1,
-      child: DropdownMenu<String>(
-        label: Text("References"),
-        initialSelection: element.data?['refType'] ?? '',
-        dropdownMenuEntries: items,
-        onSelected: (String? value) {
-          setState(() {
-            // referenceListValue = value.toString();
-            element.data ??= {};
-            element.data!['refType'] = value ?? '';
-          });
-        },
-      ),
-    );
-    // ...minMaxFields,
   }
 }
