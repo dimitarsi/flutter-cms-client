@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
-import 'package:plenty_cms/service/models/story_config.dart';
+import 'package:plenty_cms/service/models/content_type.dart';
 
 typedef OnCreateHandler = void Function(String id);
 
@@ -48,7 +48,7 @@ class _ContentTypeCreateModalState extends State<ContentTypeCreateModal> {
 
                   try {
                     final newId = await widget.client.createStoryConfig(
-                        StoryConfigRequest(
+                        ContentType(
                             name: contentTypeName,
                             slug: slugify(contentTypeName),
                             fields: []));

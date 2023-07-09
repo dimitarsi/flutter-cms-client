@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/app_router.dart';
 import 'package:plenty_cms/service/client/client.dart';
 
-import '../../service/models/story_config.dart';
+import '../../service/models/content_type.dart';
 
 class ComponentListPage extends StatefulWidget {
   ComponentListPage({super.key, required this.client});

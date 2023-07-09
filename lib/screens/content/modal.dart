@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../helpers/slugify.dart';
 import '../../service/client/client.dart';
-import '../../service/models/story.dart';
-import '../../service/models/story_config.dart';
+import '../../service/models/content.dart';
+import '../../service/models/content_type.dart';
 
 typedef OnFolderCreatedHandler = void Function();
 typedef OnDocumentCreatedHandler = void Function(String id);
@@ -33,7 +33,7 @@ class _ContentModalCreateState extends State<ContentModalCreate> {
   String? contentTypeId;
   bool loading = true;
 
-  List<StoryConfigResponse>? contentTypes;
+  List<ContentType>? contentTypes;
 
   // final TextEditingController dropdownController = TextEditingController();
 
@@ -126,7 +126,7 @@ class _ContentModalCreateState extends State<ContentModalCreate> {
                       .replaceAll(RegExp(r'/\/{2,}/'), '/');
                 }
 
-                final data = Story(
+                final data = Content(
                     data: {},
                     name: title,
                     slug: slug,

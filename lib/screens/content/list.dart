@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/app_router.dart';
 import 'package:plenty_cms/service/client/client.dart';
-import 'package:plenty_cms/service/models/story.dart';
+import 'package:plenty_cms/service/models/content.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 import 'modal.dart';
@@ -34,7 +34,7 @@ class StoryList extends StatefulWidget {
 }
 
 class _StoryListState extends State<StoryList> {
-  late Iterable<Story> stories = [];
+  late Iterable<Content> stories = [];
 
   @override
   void initState() {

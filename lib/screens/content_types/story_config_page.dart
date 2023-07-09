@@ -6,7 +6,7 @@ import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/screens/content_types/settings_modal.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/field_type.dart';
-import 'package:plenty_cms/service/models/story_config.dart';
+import 'package:plenty_cms/service/models/content_type.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 import '../../app_router.dart';
@@ -38,8 +38,8 @@ class PaddedText extends StatelessWidget {
 }
 
 class _StoryConfigPageState extends State<StoryConfigPage> {
-  StoryConfigResponse? storyConfig;
-  late Iterable<StoryConfigResponse> referenceFields;
+  ContentType? storyConfig;
+  late Iterable<ContentType> referenceFields;
   final TextEditingController groupNameController = TextEditingController();
   final groupNameLabel = const InputDecoration(labelText: "Content type name");
   ButtonStyle buttonStyle = ElevatedButton.styleFrom(
@@ -64,7 +64,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
         });
       });
     } else {
-      storyConfig = StoryConfigResponse();
+      storyConfig = ContentType(fields: [], name: "", slug: "");
       _addField();
     }
   }
@@ -160,12 +160,12 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     formState.save();
 
     if (widget.slug.isEmpty) {
-      widget.client.createStoryConfig(StoryConfigRequest(
+      widget.client.createStoryConfig(ContentType(
           slug: slugify(groupNameController.text),
           name: groupNameController.text,
           fields: storyConfig?.fields));
     } else {
-      widget.client.updateStoryConfig(StoryConfigRequest(
+      widget.client.updateStoryConfig(ContentType(
           slug: widget.slug,
           name: groupNameController.text,
           fields: storyConfig?.fields));
@@ -273,7 +273,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                         context: context,
                         builder: (context) {
                           return FieldSettingsModal(
-                            referenceFields: referenceFields.toList(),
+                            contentTypes: referenceFields.toList(),
                             element: element,
                             onSelected: () => setState(() {}),
                           );

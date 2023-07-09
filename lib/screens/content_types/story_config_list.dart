@@ -7,7 +7,7 @@ import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 import '../../app_router.dart';
-import '../../service/models/story_config.dart';
+import '../../service/models/content_type.dart';
 
 class StoryConfigList extends StatefulWidget {
   const StoryConfigList({super.key, required this.client});
@@ -22,7 +22,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
   int page = 1;
   int pages = 0;
 
-  Iterable<StoryConfigResponse> items = [];
+  Iterable<ContentType> contentTypes = [];
 
   @override
   void initState() {
@@ -36,7 +36,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
     setState(
       () {
         try {
-          items = data.entities;
+          contentTypes = data.entities;
         } catch (_e) {
           print("error - $_e");
         }
@@ -70,7 +70,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
   Widget list() {
     return ListView.builder(
       itemBuilder: (context, index) {
-        var el = items.elementAt(index);
+        var el = contentTypes.elementAt(index);
 
         if (el.name == null) {
           return ListTile(
@@ -88,7 +88,7 @@ class _StoryConfigListState extends State<StoryConfigList> {
           },
         );
       },
-      itemCount: items.length,
+      itemCount: contentTypes.length,
     );
   }
 

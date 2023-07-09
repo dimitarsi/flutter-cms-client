@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
+import 'package:plenty_cms/screens/content/DynamicField.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/new_upload.dart';
-import 'package:plenty_cms/service/models/story.dart';
-import 'package:plenty_cms/service/models/story_config.dart';
+import 'package:plenty_cms/service/models/content.dart';
+import 'package:plenty_cms/service/models/content_type.dart';
 import 'package:plenty_cms/widgets/form/file_picker_ui.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
@@ -47,45 +48,49 @@ class StoryPage extends StatefulWidget {
   State<StoryPage> createState() => _StoryPageState();
 }
 
+// TODO: Use async.dart with StreamBuilder here
 class _StoryPageState extends State<StoryPage> {
   TextEditingController controller = TextEditingController();
   TextEditingController dropdownController = TextEditingController();
   String? selectedConfigId;
 
-  late Iterable<StoryConfigResponse> configs = [];
+  List<ContentType> configs = [];
+  ContentType? config;
 
   Map<String, dynamic> dataBag = {};
 
   @override
   void initState() {
     super.initState();
-    widget.client.listStoryConfigs().then<void>((configList) {
-      widget.client.getStoryBySlugOrId(widget.slug).then<void>((value) {
-        setState(() {
-          controller.value = TextEditingValue(
-            text: value?.name ?? '',
-          );
-          if (value?.data != null) {
-            dataBag = value!.data!;
-          }
 
-          final selection = configList.entities.firstWhere((element) {
-            return value?.configId == element.id ||
-                value?.configId == element.name;
-          }, orElse: () => StoryConfigResponse(name: '', id: ''));
+    Future.wait([
+      widget.client.getStoryBySlugOrId(widget.slug),
+    ]).then((val) {
+      final value = (val[0] as Content);
 
-          dropdownController.text = selection.name!;
-          selectedConfigId = selection.id;
-
-          configs = configList.entities;
-        });
-      }).catchError(
-        (error) {
-          print("Unable to fetch `getStoryBySlugOrId` - $error");
-        },
-        test: (error) => true,
-      );
+      if (value.configId != null) {
+        loadFullConfig(value.configId!);
+      }
+    }).catchError((error) {
+      print("Unable to fetch page data - ${error}");
     });
+
+    widget.client.listStoryConfigs().then((response) {
+      setState(() {
+        configs = response.entities.toList();
+      });
+    });
+  }
+
+  Future<void> loadFullConfig(String configId) async {
+    config = await widget.client.getStoryConfig(configId);
+
+    if (config != null) {
+      dropdownController.text = config?.name ?? "";
+      selectedConfigId = config?.id!;
+    }
+
+    setState(() {});
   }
 
   void createOrUpdateStory() {
@@ -102,51 +107,35 @@ class _StoryPageState extends State<StoryPage> {
 
     formState.save();
 
-    if (widget.slug.isEmpty) {
-      widget.client.createStory(Story(
-          name: controller.text,
-          slug: slug,
-          configId: selectedConfigId,
-          data: dataBag));
-    } else {
-      widget.client.updateStory(
-          widget.slug,
-          Story(
-              configId: selectedConfigId,
-              name: controller.text,
-              slug: widget.slug,
-              data: dataBag));
-    }
+    // if (widget.slug.isEmpty) {
+    //   widget.client.createStory(Content(
+    //       name: controller.text,
+    //       slug: slug,
+    //       configId: selectedConfigId,
+    //       data: dataBag));
+    // } else {
+    //   widget.client.updateStory(
+    //       widget.slug,
+    //       Content(
+    //           configId: selectedConfigId,
+    //           name: controller.text,
+    //           slug: widget.slug,
+    //           data: dataBag));
+    // }
   }
 
   Widget dynamicFields() {
     List<Widget> dynaimcFields = [];
 
-    StoryConfigResponse? config;
     try {
-      config = configs.singleWhere(
-        (element) => element.id == selectedConfigId,
-      );
+      final fields = config?.fields;
 
-      if (config.fields != null) {
-        dynaimcFields = config.fields!
+      if (fields != null) {
+        dynaimcFields = fields
             .where((element) =>
                 element.groupName != null && element.groupName!.isNotEmpty)
-            .map((e) {
-          return Expanded(
-            child: Container(
-              color: Colors.grey,
-              padding: const EdgeInsets.all(8.0),
-              margin: const EdgeInsets.only(top: 8, bottom: 8),
-              child: Column(children: [
-                Row(
-                  children: [const Text("Group name"), Text(e.groupName!)],
-                ),
-                ...getRows(e.rows ?? [])
-              ]),
-            ),
-          );
-        }).toList();
+            .map(_dynamicField)
+            .toList();
       }
     } catch (e) {
       // do nothing
@@ -161,9 +150,29 @@ class _StoryPageState extends State<StoryPage> {
     );
   }
 
+  Widget _dynamicField(Field e) {
+    return Expanded(
+      child: Container(
+        color: Colors.grey,
+        padding: const EdgeInsets.all(8.0),
+        margin: const EdgeInsets.only(top: 8, bottom: 8),
+        child: Column(children: [
+          Row(
+            children: [const Text("Group name"), Text(e.groupName!)],
+          ),
+          ...getRows(e.rows ?? [])
+        ]),
+      ),
+    );
+  }
+
   List<NewUpload> _getFieldData(List<dynamic> data) {
     return data.map((d) => NewUpload.fromJson(d)).toList();
   }
+
+  // List<Widget> getRows(List<FieldRow> rows) {
+  //   return rows.map((e) => DynamicField(data: dataBag[e])).toList();
+  // }
 
   Iterable<Widget> getRows(Iterable<FieldRow> rows) {
     return rows.map((row) {
@@ -283,6 +292,20 @@ class _StoryPageState extends State<StoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    return Form(
+        key: widget.formKey,
+        child: ListView(
+          children: [
+            Row(
+              children: [storyName(), storyType(flex: 1)],
+            ),
+            dynamicFields(),
+            saveButton(),
+          ],
+        ));
+  }
+
+  Widget storyName() {
     final fieldStoryName = TextFormField(
       controller: controller,
       validator: (value) =>
@@ -292,23 +315,10 @@ class _StoryPageState extends State<StoryPage> {
       ),
     );
 
-    return Form(
-        key: widget.formKey,
-        child: ListView(
-          children: [
-            Row(
-              children: [
-                Flexible(
-                  flex: 3,
-                  child: fieldStoryName,
-                ),
-                storyType(flex: 1)
-              ],
-            ),
-            dynamicFields(),
-            saveButton(),
-          ],
-        ));
+    return Flexible(
+      flex: 3,
+      child: fieldStoryName,
+    );
   }
 
   Widget storyType({required int flex}) {
@@ -330,6 +340,7 @@ class _StoryPageState extends State<StoryPage> {
       dropdownMenuEntries: dropdownChildren.toList(),
       controller: dropdownController,
       onSelected: (value) {
+        loadFullConfig(value.toString());
         setState(() {
           selectedConfigId = value.toString();
         });
@@ -343,7 +354,7 @@ class _StoryPageState extends State<StoryPage> {
   }
 
   bool isRefListLoading = false;
-  List<Story> modalRefList = [];
+  List<Content> modalRefList = [];
 
   void openRefModal(String contentType,
       {void Function(String refId)? onSelect}) async {
@@ -359,7 +370,7 @@ class _StoryPageState extends State<StoryPage> {
               final name = modalRefList[index].name;
               final refId = modalRefList[index].slug;
               final configId = modalRefList[index].configId;
-              List<StoryConfigResponse>? config =
+              List<ContentType>? config =
                   configs.where((element) => element.id == configId).toList();
 
               if (name == null || refId == null || config.isEmpty) {

@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/service/models/field_type.dart';
 
-import '../../service/models/story_config.dart';
+import '../../service/models/content_type.dart';
 
 class FieldSettingsModal extends StatefulWidget {
   FieldSettingsModal(
       {super.key,
       required this.element,
       required this.onSelected,
-      required this.referenceFields});
+      required this.contentTypes});
 
   final FieldRow element;
   final VoidCallback? onSelected;
-  List<StoryConfigResponse> referenceFields;
+  List<ContentType> contentTypes = [];
 
   @override
   State<FieldSettingsModal> createState() => _FieldSettingsState();
 
   List<DropdownMenuEntry<String>> get items {
-    return referenceFields.map((e) {
+    return contentTypes.map((e) {
       return DropdownMenuEntry<String>(
-        value: e.slug!,
+        value: e.slug,
         label: e.name!,
       );
     }).toList();

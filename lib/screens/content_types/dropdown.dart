@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/service/models/field_type.dart';
 
-import '../../service/models/story_config.dart';
+import '../../service/models/content_type.dart';
 
 var dropdownOptions = [
   DropdownMenuEntry(

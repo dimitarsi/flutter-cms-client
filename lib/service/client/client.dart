@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart';
 import 'package:plenty_cms/service/data/rest_response.dart';
-import 'package:plenty_cms/service/models/story.dart';
+import 'package:plenty_cms/service/models/content.dart';
 
-import '../models/story_config.dart';
+import '../models/content_type.dart';
 import '../models/user_auth.dart';
 import '../data/pagination.dart';
 
@@ -36,16 +36,15 @@ class RestClient {
   Uri get attachmentsUrl => Uri.parse("$url/attachments");
   Uri get validateTokenUrl => Uri.parse("$url/check");
 
-  Future<StoryConfigResponse> getStoryConfig(String idOrSlug) async {
+  Future<ContentType> getStoryConfig(String idOrSlug) async {
     var getStoryConfigUrlWithIdOrSlug = Uri.parse("$storyConfigUrl/$idOrSlug");
     var response =
         await get(getStoryConfigUrlWithIdOrSlug, headers: authHeader);
 
-    return StoryConfigResponse.fromJson(jsonDecode(response.body));
+    return ContentType.fromJson(jsonDecode(response.body));
   }
 
-  Future<RestResponse<StoryConfigResponse>> listStoryConfigs(
-      {int page = 1}) async {
+  Future<RestResponse<ContentType>> listStoryConfigs({int page = 1}) async {
     var listStoryConfigWithPage = Uri.parse("$storyConfigUrl?page=$page");
 
     var response = await get(listStoryConfigWithPage, headers: authHeader);
@@ -55,14 +54,14 @@ class RestClient {
       return RestResponse(hasError: true);
     }
 
-    List<StoryConfigResponse> items = [];
+    List<ContentType> items = [];
 
     try {
       if (body["items"] != null) {
         var validItems = (body["items"]).where(
             (element) => element['_id'] != null && element['slug'] != null);
         for (var item in validItems.toList()) {
-          items.add(StoryConfigResponse.fromJson(item));
+          items.add(ContentType.fromJson(item));
         }
       }
     } catch (e) {
@@ -73,7 +72,7 @@ class RestClient {
         pagination: Pagination.fromJson(body["pagination"]), entities: items);
   }
 
-  Future<String> createStoryConfig(StoryConfigRequest data) async {
+  Future<String> createStoryConfig(ContentType data) async {
     final result = await post(storyConfigUrl,
         headers: allHeaders, body: jsonEncode(data.toJson()));
 
@@ -82,12 +81,12 @@ class RestClient {
     return json['id'];
   }
 
-  Future<void> updateStoryConfig(StoryConfigRequest data) async {
+  Future<void> updateStoryConfig(ContentType data) async {
     await patch(Uri.parse("$storyConfigUrl/${data.slug}"),
         headers: allHeaders, body: jsonEncode(data.toJson()));
   }
 
-  Future<String> createStory(Story story) async {
+  Future<String> createStory(Content story) async {
     final result = await post(storyUrl,
         headers: allHeaders, body: jsonEncode(story.toJson()));
     final json = jsonDecode(result.body);
@@ -95,12 +94,12 @@ class RestClient {
     return json['id'];
   }
 
-  Future<void> updateStory(String slugOrId, Story story) async {
+  Future<void> updateStory(String slugOrId, Content story) async {
     await patch(Uri.parse("$storyUrl/$slugOrId"),
         headers: allHeaders, body: jsonEncode(story.toJson()));
   }
 
-  Future<RestResponse<Story>> getStories({page = 1, String? folder}) async {
+  Future<RestResponse<Content>> getStories({page = 1, String? folder}) async {
     var url = Uri.parse("$storySearchUrl");
 
     if (folder != null && folder.isNotEmpty) {
@@ -113,12 +112,12 @@ class RestClient {
     final response = await get(url, headers: authHeader);
     final body = jsonDecode(response.body);
 
-    List<Story> items = [];
+    List<Content> items = [];
 
     try {
       if (body["items"] != null) {
         for (var element in (body["items"] as List<dynamic>)) {
-          items.add(Story.fromJson(element));
+          items.add(Content.fromJson(element));
         }
       }
     } catch (e) {
@@ -130,13 +129,13 @@ class RestClient {
         pagination: Pagination.fromJson(body["pagination"]), entities: items);
   }
 
-  Future<Story?> getStoryBySlugOrId(String slugOrId) async {
+  Future<Content?> getStoryBySlugOrId(String slugOrId) async {
     final response =
         await get(Uri.parse("$storyUrl/$slugOrId"), headers: authHeader);
 
     if (response.statusCode < 300) {
       final decoded = jsonDecode(response.body);
-      final asJson = Story.fromJson(decoded);
+      final asJson = Content.fromJson(decoded);
 
       return asJson;
     }
