@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:plenty_cms/screens/test_app/dynamic_fields_app.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +34,18 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    return routerApp();
+    return dynamicFieldsTestApp();
+  }
+
+  Widget dynamicFieldsTestApp() {
+    return MaterialApp(
+        home: Scaffold(
+      body: DynamicFieldsApp(),
+    ));
+  }
+
+  Widget routerApp() {
     var routes = AppRouter.getRouter(restClient);
 
     return createProvider(MaterialApp.router(
