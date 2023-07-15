@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
-import 'package:plenty_cms/service/models/content_type.dart';
+import '../../service/models/content.dart';
 
 typedef OnCreateHandler = void Function(String id);
 
@@ -51,7 +51,7 @@ class _ContentTypeCreateModalState extends State<ContentTypeCreateModal> {
                         ContentType(
                             name: contentTypeName,
                             slug: slugify(contentTypeName),
-                            fields: []));
+                            type: "text"));
 
                     if (widget.onCreate != null) {
                       widget.onCreate!(newId);

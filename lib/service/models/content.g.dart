@@ -8,26 +8,35 @@ part of 'content.dart';
 
 Content _$ContentFromJson(Map<String, dynamic> json) => Content(
       id: json['id'] as String?,
-      name: json['displayName'] as String?,
+      name: json['name'] as String?,
       slug: json['slug'] as String?,
-      data: (json['data'] as Map<String, dynamic>?)?.map(
-        (k, e) => MapEntry(k, ContentData.fromJson(e as Map<String, dynamic>)),
-      ),
+      data: json['data'],
       type: json['type'] as String?,
-      configId: json['configId'] as String?,
-      folder: json['folder'] as String?,
-      config: json['config'] == null
-          ? null
-          : ContentType.fromJson(json['config'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$ContentToJson(Content instance) => <String, dynamic>{
       'id': instance.id,
-      'displayName': instance.name,
+      'name': instance.name,
       'slug': instance.slug,
       'type': instance.type,
-      'configId': instance.configId,
-      'folder': instance.folder,
       'data': instance.data,
-      'config': instance.config,
+    };
+
+ContentType _$ContentTypeFromJson(Map<String, dynamic> json) => ContentType(
+      name: json['name'] as String,
+      children: (json['children'] as List<dynamic>?)
+          ?.map((e) => ContentType.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      id: json['_id'] as String?,
+      slug: json['slug'] as String,
+      type: json['type'] as String,
+    );
+
+Map<String, dynamic> _$ContentTypeToJson(ContentType instance) =>
+    <String, dynamic>{
+      'name': instance.name,
+      '_id': instance.id,
+      'type': instance.type,
+      'children': instance.children,
+      'slug': instance.slug,
     };

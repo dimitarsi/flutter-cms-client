@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:plenty_cms/screens/test_app/dynamic_fields_app.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
+import 'package:plenty_cms/state/content_cubit.dart';
+import 'package:plenty_cms/state/content_type_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_router.dart';
@@ -59,6 +61,18 @@ class MyApp extends StatelessWidget {
   createProvider(Widget child) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<ContentTypeCubit>(
+          create: (context) {
+            final state = ContentTypeState();
+            return ContentTypeCubit(state, client: restClient);
+          },
+        ),
+        BlocProvider<ContentCubit>(
+          create: (context) {
+            final state = ContentCubitState();
+            return ContentCubit(state, client: restClient);
+          },
+        ),
         BlocProvider<AuthCubit>(create: (_) {
           var state = AuthState();
 

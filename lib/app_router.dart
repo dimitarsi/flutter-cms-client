@@ -93,12 +93,11 @@ class AppRouter {
           builder: (context, state) => StoryConfigList(client: restClient)),
       GoRoute(
           path: contentTypeEditPath,
-          builder: (context, state) => StoryConfigPage(
-              slug: state.params['slug'] ?? '', client: restClient)),
+          builder: (context, state) =>
+              StoryConfigPage(slug: state.params['slug'] ?? '')),
       GoRoute(
           path: contentTypeCreatePath,
-          builder: (context, state) =>
-              StoryConfigPage(slug: '', client: restClient)),
+          builder: (context, state) => StoryConfigPage(slug: '')),
       GoRoute(
         path: contentListPath,
         builder: (context, state) => StoryListScaffold(

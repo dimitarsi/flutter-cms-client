@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../helpers/slugify.dart';
 import '../../service/client/client.dart';
 import '../../service/models/content.dart';
-import '../../service/models/content_type.dart';
 
 typedef OnFolderCreatedHandler = void Function();
 typedef OnDocumentCreatedHandler = void Function(String id);
@@ -127,14 +126,14 @@ class _ContentModalCreateState extends State<ContentModalCreate> {
                 }
 
                 final data = Content(
-                    data: {},
-                    name: title,
-                    slug: slug,
-                    type: type,
-                    folder: widget.folder);
+                  data: {},
+                  name: title,
+                  slug: slug,
+                  type: type,
+                );
 
                 if (type == "document" && contentTypeId != null) {
-                  data.configId = contentTypeId;
+                  // data.configId = contentTypeId;
                 }
 
                 final newId = await widget.client.createStory(data);

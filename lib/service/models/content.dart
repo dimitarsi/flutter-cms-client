@@ -1,34 +1,64 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:plenty_cms/service/models/content_type.dart';
-
-import 'content_data.dart';
-
 part 'content.g.dart';
 
 @JsonSerializable()
 class Content {
-  Content(
-      {this.id,
-      this.name,
-      this.slug,
-      this.data,
-      this.type,
-      this.configId,
-      this.folder,
-      this.config});
+  Content({
+    this.id,
+    this.name,
+    this.slug,
+    this.data,
+    this.type,
+  });
 
   String? id;
-  @JsonKey(name: "displayName")
   String? name;
   String? slug;
   String? type;
-  String? configId;
-  String? folder;
-  Map<String, ContentData>? data;
-  ContentType? config;
+
+  dynamic data;
+
+  String getDataAsString() {
+    return data as String;
+  }
+
+  void setStringData(String val) {
+    data = val;
+  }
+
+  List<Content> getDataAsComponent() {
+    return data as List<Content>;
+  }
+
+  void setComponentData(List<Content> newList) {
+    data = newList;
+  }
 
   factory Content.fromJson(Map<String, dynamic> json) =>
       _$ContentFromJson(json);
 
   Map<String, dynamic> toJson() => _$ContentToJson(this);
+}
+
+@JsonSerializable()
+class ContentType {
+  ContentType(
+      {required this.name,
+      this.children,
+      this.id,
+      required this.slug,
+      required this.type});
+
+  String name;
+  @JsonKey(name: "_id")
+  String? id;
+  String type;
+
+  List<ContentType>? children;
+  String slug;
+
+  factory ContentType.fromJson(Map<String, dynamic> json) =>
+      _$ContentTypeFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ContentTypeToJson(this);
 }

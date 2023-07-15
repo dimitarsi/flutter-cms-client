@@ -1,22 +1,19 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
-import 'package:plenty_cms/screens/content_types/settings_modal.dart';
-import 'package:plenty_cms/service/client/client.dart';
-import 'package:plenty_cms/service/models/field_type.dart';
-import 'package:plenty_cms/service/models/content_type.dart';
-import 'package:plenty_cms/widgets/navigation/sidenav.dart';
+import 'package:plenty_cms/screens/content_types/content_type_inputs.dart';
+import 'package:plenty_cms/service/models/content.dart';
+import 'package:plenty_cms/state/content_type_cubit.dart';
 
 import '../../app_router.dart';
-import 'dropdown.dart';
 
 class StoryConfigPage extends StatefulWidget {
-  StoryConfigPage({super.key, required this.slug, required this.client});
+  StoryConfigPage({super.key, required this.slug});
 
   final String slug;
-  final RestClient client;
   final GlobalKey<FormState> contentTypeFormKey = GlobalKey();
 
   @override
@@ -38,8 +35,9 @@ class PaddedText extends StatelessWidget {
 }
 
 class _StoryConfigPageState extends State<StoryConfigPage> {
-  ContentType? storyConfig;
-  late Iterable<ContentType> referenceFields;
+  // ContentType? storyConfig;
+  // late Iterable<ContentType> referenceFields;
+
   final TextEditingController groupNameController = TextEditingController();
   final groupNameLabel = const InputDecoration(labelText: "Content type name");
   ButtonStyle buttonStyle = ElevatedButton.styleFrom(
@@ -52,280 +50,42 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   void initState() {
     super.initState();
 
-    widget.client.listStoryConfigs().then<void>((result) => referenceFields =
-        result.entities.where(
-            (element) => element.slug != widget.slug && element.name != null));
-
-    if (widget.slug.isNotEmpty) {
-      widget.client.getStoryConfig(widget.slug).then<void>((value) {
-        setState(() {
-          groupNameController.value = TextEditingValue(text: value.name ?? '');
-          storyConfig = value;
-        });
-      });
-    } else {
-      storyConfig = ContentType(fields: [], name: "", slug: "");
-      _addField();
-    }
+    context.read<ContentTypeCubit>().loadSingle(idOrSlug: widget.slug);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: const SideNav(),
-      appBar: AppBar(),
-      floatingActionButton: addFieldsButton(),
-      body: DropdownButtonHideUnderline(
-        child: Form(
-          key: widget.contentTypeFormKey,
-          child: ListView(
-            children: [
-              pageTitle(),
-              Container(
-                height: 80,
-              ),
-              nameSection(),
-              fields(),
-              saveButtons()
-            ],
-          ),
-        ),
-      ),
-    );
+    return Scaffold(body: BlocBuilder<ContentTypeCubit, ContentTypeState>(
+      builder: (context, state) {
+        final item = state.cacheById[widget.slug];
+
+        return ListView(
+          children: [
+            pageTitle(),
+            Container(
+              height: 80,
+            ),
+            if (item != null) ContentTypeList(contentType: item),
+            saveButtons(item)
+          ],
+        );
+      },
+    ));
   }
 
   Widget pageTitle() {
     return Text(
-      "Content Types",
+      "Content Type",
       style: Theme.of(context).textTheme.headlineLarge,
     );
   }
 
-  Widget nameSection() {
-    return SizedBox(
-      width: min(MediaQuery.of(context).size.width, 1024),
-      child: TextFormField(
-        controller: groupNameController,
-        decoration: groupNameLabel,
-        validator: (value) {
-          return value == null || value.isEmpty
-              ? "Content Type Name is required"
-              : null;
-        },
-      ),
-    );
-  }
-
-  void _addField() {
-    FieldRow newRow = FieldRow(
-        width: '100%',
-        slug: 'field_00',
-        displayName: 'Field 00',
-        type: FieldType.text);
-
-    if (storyConfig == null) {
-      return;
-    }
-
-    if (storyConfig!.fields == null) {
-      storyConfig!.fields = [
-        Field(groupName: 'GroupName 00', rows: [newRow])
-      ];
-    } else {
-      var index = storyConfig!.fields!.length.toString();
-      var field =
-          Field(groupName: "Field ${index.padLeft(2, "0")}", rows: [newRow]);
-      storyConfig!.fields!.add(field);
-    }
-  }
-
-  void _addFieldRow(Field field) {
-    setState(() {
-      if (field.rows != null) {
-        field.rows!.add(FieldRow(type: FieldType.text));
-      } else {
-        field.rows = [FieldRow(type: FieldType.text)];
-      }
-    });
-  }
-
-  void _createOrUpdate() async {
-    final formState = widget.contentTypeFormKey.currentState!;
-    final valid = formState.validate();
-
-    if (!valid) {
-      return;
-    }
-
-    formState.save();
-
-    if (widget.slug.isEmpty) {
-      widget.client.createStoryConfig(ContentType(
-          slug: slugify(groupNameController.text),
-          name: groupNameController.text,
-          fields: storyConfig?.fields));
-    } else {
-      widget.client.updateStoryConfig(ContentType(
-          slug: widget.slug,
-          name: groupNameController.text,
-          fields: storyConfig?.fields));
-    }
-  }
-
-  Widget fields() {
-    List<Widget> fieldsList = [];
-
-    var screenWidth = MediaQuery.of(context).size.width;
-
-    for (var item in storyConfig?.fields ?? []) {
-      var field = TextFormField(
-        initialValue: item.groupName ?? '',
-        decoration: const InputDecoration(label: Text("Group Name")),
-        onSaved: (newValue) {
-          item.groupName = newValue;
-        },
-      );
-      var deleteButton = _removeButton(() {
-        storyConfig?.fields?.remove(item);
-      });
-
-      var addRowButton = ElevatedButton(
-          onPressed: () {
-            _addFieldRow(item);
-          },
-          child: const Text("Add Row"));
-
-      fieldsList.add(SizedBox(
-        width: min(screenWidth, 1024),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: field,
-                  ),
-                ),
-                deleteButton
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 10),
-              child: rows(item),
-            ),
-            addRowButton
-          ],
-        ),
-      ));
-    }
-
-    fieldsList.add(ElevatedButton(
-        onPressed: () => setState(_addField),
-        child: const Text("Add Fields Group")));
-
-    return Column(
-      children: fieldsList,
-    );
-  }
-
-  Widget _getFieldByType(FieldRow element) {
-    const defaultFieldName = InputDecoration(labelText: "Field Name");
-
-    return TextFormField(
-      decoration: defaultFieldName,
-      initialValue: element.displayName,
-      onSaved: (value) {
-        element.displayName = value.toString();
-        element.slug = slugify(value ?? '');
-      },
-    );
-  }
-
-  Widget rows(Field field) {
-    List<Widget> rowsList = [];
-
-    for (FieldRow element in field.rows ?? []) {
-      var inputField = _getFieldByType(element);
-
-      rowsList.add(
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                flex: 3,
-                child: inputField,
-              ),
-              Flexible(
-                flex: 2,
-                child: ContentTypeDropdown(
-                  element: element,
-                  onSelected: () => setState(() {}),
-                ),
-              ),
-              IconButton(
-                  onPressed: () {
-                    showModalBottomSheet(
-                        context: context,
-                        builder: (context) {
-                          return FieldSettingsModal(
-                            contentTypes: referenceFields.toList(),
-                            element: element,
-                            onSelected: () => setState(() {}),
-                          );
-                        });
-                  },
-                  icon: Icon(Icons.settings)),
-              _removeButton(() {
-                field.rows?.remove(element);
-              })
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      children: rowsList,
-    );
-  }
-
-  Widget _removeButton(VoidCallback? onPressed) {
-    return SizedBox(
-      width: 75,
-      child: IconButton(
-          onPressed: () {
-            setState(() {
-              onPressed?.call();
-            });
-          },
-          icon: const Icon(
-            Icons.delete,
-            color: Colors.red,
-          )),
-    );
-  }
-
-  Widget addFieldsButton() {
-    return FloatingActionButton(
-      onPressed: _addField,
-      child: const Icon(Icons.add_task),
-    );
-  }
-
-  Widget saveButtons() {
-    if (storyConfig == null) {
+  Widget saveButtons(ContentType? contentType) {
+    if (contentType == null) {
       return const SizedBox.shrink();
     }
 
-    var nonEmptyConfigList = (storyConfig?.fields ?? [])
-        .where((element) =>
-            element.groupName != null && element.groupName!.isNotEmpty)
-        .toList();
+    updateContentType() => context.read<ContentTypeCubit>().update(contentType);
 
     return Padding(
       padding: const EdgeInsets.only(top: 40),
@@ -343,22 +103,126 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
                   }
                 },
                 child: const Text("Cancel")),
-            GestureDetector(
-              onTap: () {
-                if (nonEmptyConfigList.isEmpty) {
-                  showModalBottomSheet(
-                      context: context,
-                      builder: (_) => const Text("Hello World"));
-                }
-              },
-              child: ElevatedButton(
-                onPressed: nonEmptyConfigList.isEmpty ? null : _createOrUpdate,
-                style: buttonStyle,
-                child: Text(widget.slug.isEmpty ? "Create" : "Update"),
-              ),
+            ElevatedButton(
+              onPressed: updateContentType,
+              style: buttonStyle,
+              child: Text("Update"),
             )
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ContentTypeList extends StatefulWidget {
+  const ContentTypeList({super.key, required this.contentType});
+
+  final ContentType contentType;
+
+  @override
+  State<ContentTypeList> createState() =>
+      _ContentTypeListState(contentType: contentType);
+}
+
+class _ContentTypeListState extends State<ContentTypeList> {
+  _ContentTypeListState({required this.contentType});
+
+  ContentType contentType;
+
+  @override
+  Widget build(BuildContext context) {
+    print("Rebuild");
+    return Row(
+      children: [
+        Flexible(child: ContentTypeInputs(contentType: contentType)),
+        Container(
+          width: 20,
+        ),
+        addNewFieldButton()
+      ],
+    );
+  }
+
+  Widget addNewFieldButton() {
+    // final cubitState = context.read<ContentTypeCubit>();
+
+    return Container(
+      alignment: Alignment.centerRight,
+      child: ElevatedButton(
+        child: Text("Edit"),
+        onPressed: () {
+          final formKey = GlobalKey<FormState>();
+
+          showGeneralDialog(
+              context: context,
+              anchorPoint: Offset(1, 0.5),
+              pageBuilder: (context, anim, animcontrl) {
+                final buttonWithInput = [
+                  TextFormField(
+                      initialValue: contentType.name,
+                      decoration: InputDecoration(label: Text("Name")),
+                      onSaved: (val) {
+                        if (val == null || val.isEmpty) {
+                          return;
+                        }
+
+                        final newContentTypeChild = ContentType(
+                            name: val, slug: slugify(val), type: "text");
+
+                        if (contentType.children == null) {
+                          contentType.children = [newContentTypeChild];
+                          if (contentType.type != "composite") {
+                            contentType.type = "composite";
+                            contentType.name = "";
+                          }
+                        } else {
+                          contentType.children!.add(newContentTypeChild);
+                        }
+                        print("Add more children");
+                        setState(() {});
+                      }),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                          onPressed: () {
+                            context.pop();
+                          },
+                          child: Text("Close")),
+                      ElevatedButton(
+                          onPressed: () {
+                            formKey.currentState?.save();
+                            context.pop();
+                          },
+                          child: Text("Save"))
+                    ],
+                  )
+                ];
+
+                return Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: Form(
+                    key: formKey,
+                    child: Container(
+                      alignment: Alignment.topRight,
+                      padding: EdgeInsets.all(20),
+                      child: Container(
+                        color: Colors.white,
+                        width: max(700,
+                            max(300, MediaQuery.of(context).size.width * 0.25)),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 10, bottom: 10),
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: buttonWithInput),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              });
+        },
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/service/models/field_type.dart';
 
-import '../../service/models/content_type.dart';
+import '../../service/models/content.dart';
 
 var dropdownOptions = [
   DropdownMenuEntry(
@@ -38,7 +38,7 @@ class ContentTypeDropdown extends StatelessWidget {
   ContentTypeDropdown(
       {super.key, required this.element, required this.onSelected});
 
-  final FieldRow element;
+  final ContentType element;
   final VoidCallback? onSelected;
 
   @override

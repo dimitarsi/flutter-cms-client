@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:plenty_cms/service/models/content_data.dart';
-import 'package:plenty_cms/service/models/content_type.dart';
+import 'package:plenty_cms/service/models/content.dart';
 
 class DynamicField extends StatelessWidget {
   DynamicField({super.key, required this.data, required this.contentType});
 
-  final ContentData data;
+  final Content data;
   final ContentType contentType;
 
   @override
   Widget build(BuildContext context) {
+    if (data.type != contentType.type) {
+      return Text("Content Type mismatch, probably using older version");
+    }
+
     if (data.type == "component") {
       return _componentField();
     }
@@ -19,10 +22,10 @@ class DynamicField extends StatelessWidget {
 
   Widget _textField() {
     return TextFormField(
-      initialValue: this.data.getTextData(),
+      initialValue: data.getDataAsString(),
       decoration: InputDecoration(label: Text(contentType.name)),
       onSaved: (newValue) {
-        data.setTextData(newValue ?? "");
+        data.setStringData(newValue ?? "");
       },
     );
   }
@@ -30,9 +33,14 @@ class DynamicField extends StatelessWidget {
   Widget _componentField() {
     List<Widget> children = [];
 
-    data.getComponentData().forEach(
-      (key, value) {
-        children.add(DynamicField(data: value, contentType: contentType));
+    final contentTypeChildren = contentType.children;
+
+    data.getDataAsComponent().asMap().forEach(
+      (index, value) {
+        if (contentTypeChildren != null) {
+          children.add(DynamicField(
+              data: value, contentType: contentTypeChildren[index]));
+        }
       },
     );
 

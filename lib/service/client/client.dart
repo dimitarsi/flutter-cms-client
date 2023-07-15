@@ -5,7 +5,6 @@ import 'package:http/http.dart';
 import 'package:plenty_cms/service/data/rest_response.dart';
 import 'package:plenty_cms/service/models/content.dart';
 
-import '../models/content_type.dart';
 import '../models/user_auth.dart';
 import '../data/pagination.dart';
 
@@ -26,10 +25,10 @@ class RestClient {
   Map<String, String> get allHeaders =>
       {"x-access-token": token, "content-type": applicationJsonUtf8};
 
-  Uri get storyConfigUrl => Uri.parse("$url/story-configs");
-  Uri get storyUrl => Uri.parse("$url/stories");
+  Uri get storyConfigUrl => Uri.parse("$url/content_types");
+  Uri get storyUrl => Uri.parse("$url/content");
   Uri get componentsUrl => Uri.parse("$url/components");
-  Uri get storySearchUrl => Uri.parse("$url/stories/search");
+  Uri get storySearchUrl => Uri.parse("$url/content/search");
   Uri get loginUrl => Uri.parse("$url/login");
   Uri get logoutUrl => Uri.parse("$url/logout");
   Uri get usersUrl => Uri.parse("$url/users");
@@ -183,7 +182,7 @@ class RestClient {
     return "$url/media/$id";
   }
 
-  Future<RestResponse<Field>> getComponents({page = 1}) async {
+  Future<RestResponse<ContentType>> getComponents({page = 1}) async {
     final componentUrlWithPage = componentsUrl.replace(query: "page=$page");
 
     try {
@@ -194,15 +193,15 @@ class RestClient {
         return RestResponse(hasError: true);
       }
 
-      final List<Field> items = [];
+      final List<ContentType> items = [];
 
       if (body['items'] != null) {
         for (final item in body['items']) {
-          items.add(Field.fromJson(item));
+          items.add(ContentType.fromJson(item));
         }
       }
 
-      final response = RestResponse<Field>(
+      final response = RestResponse<ContentType>(
           entities: items, pagination: Pagination.fromJson(body['pagination']));
 
       return response;

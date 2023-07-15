@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/app_router.dart';
 import 'package:plenty_cms/service/client/client.dart';
 
-import '../../service/models/content_type.dart';
+import '../../service/models/content.dart';
 
 class ComponentListPage extends StatefulWidget {
   ComponentListPage({super.key, required this.client});
@@ -22,7 +22,7 @@ class _ComponentListPageState extends State<ComponentListPage> {
     super.initState();
   }
 
-  List<Field> items = [];
+  List<ContentType> items = [];
 
   void loadPage({page = 1}) async {
     final result = await widget.client.getComponents(page: page);
@@ -50,7 +50,7 @@ class _ComponentListPageState extends State<ComponentListPage> {
 
   Widget _itemBuilder(BuildContext context, int index) {
     return ListTile(
-      title: Text("${items[index].groupName}"),
+      title: Text("${items[index].name}"),
       onTap: () {
         final itemId = items[index].id;
 

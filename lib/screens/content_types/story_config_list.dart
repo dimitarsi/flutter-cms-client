@@ -7,7 +7,7 @@ import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 import '../../app_router.dart';
-import '../../service/models/content_type.dart';
+import '../../service/models/content.dart';
 
 class StoryConfigList extends StatefulWidget {
   const StoryConfigList({super.key, required this.client});

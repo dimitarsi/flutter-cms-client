@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/service/models/field_type.dart';
 
-import '../../service/models/content_type.dart';
+import '../../service/models/content.dart';
 
 class FieldSettingsModal extends StatefulWidget {
   FieldSettingsModal(
@@ -10,7 +10,7 @@ class FieldSettingsModal extends StatefulWidget {
       required this.onSelected,
       required this.contentTypes});
 
-  final FieldRow element;
+  final Content element;
   final VoidCallback? onSelected;
   List<ContentType> contentTypes = [];
 
@@ -133,24 +133,26 @@ class ContentTypeWidthsDropdown extends StatelessWidget {
   ContentTypeWidthsDropdown(
       {super.key, required this.element, required this.onSelected});
 
-  final FieldRow element;
+  final Content element;
   final VoidCallback? onSelected;
 
   @override
   Widget build(BuildContext context) {
-    return DropdownMenu(
-      label: const Text("Width"),
-      initialSelection: element.width ?? "100",
-      onSelected: (value) {
-        element.width = value;
-        onSelected?.call();
-      },
-      dropdownMenuEntries: const [
-        DropdownMenuEntry(label: "100%", value: "100"),
-        DropdownMenuEntry(label: "66%", value: "66"),
-        DropdownMenuEntry(label: "50%", value: "50"),
-        DropdownMenuEntry(label: "33%", value: "33"),
-      ],
+    return Container(
+      color: Colors.red,
+      child: DropdownMenu(
+        label: const Text("Width"),
+        initialSelection: "100",
+        onSelected: (value) {
+          onSelected?.call();
+        },
+        dropdownMenuEntries: const [
+          DropdownMenuEntry(label: "100%", value: "100"),
+          DropdownMenuEntry(label: "66%", value: "66"),
+          DropdownMenuEntry(label: "50%", value: "50"),
+          DropdownMenuEntry(label: "33%", value: "33"),
+        ],
+      ),
     );
   }
 }
