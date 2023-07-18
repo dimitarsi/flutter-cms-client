@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 part 'content.g.dart';
 
@@ -61,4 +63,16 @@ class ContentType {
       _$ContentTypeFromJson(json);
 
   Map<String, dynamic> toJson() => _$ContentTypeToJson(this);
+
+  ContentType cloneDeep() {
+    final decoded = jsonDecode(jsonEncode(this));
+    return ContentType.fromJson(decoded);
+  }
+
+  void addChild(ContentType contentType) {
+    if (this.children == null) {
+      this.children = [];
+    }
+    this.children!.add(contentType);
+  }
 }

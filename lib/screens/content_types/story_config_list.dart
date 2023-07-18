@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:plenty_cms/screens/content_types/modal.dart';
+import 'package:plenty_cms/screens/content_types/create_modal.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 

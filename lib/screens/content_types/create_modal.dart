@@ -40,7 +40,6 @@ class _ContentTypeCreateModalState extends State<ContentTypeCreateModal> {
                   final formState = widget.formKey.currentState;
 
                   if (formState == null || !formState.validate()) {
-                    print("is null ? ${formState == null ? 'yes' : 'no'}");
                     return;
                   }
 
@@ -51,7 +50,8 @@ class _ContentTypeCreateModalState extends State<ContentTypeCreateModal> {
                         ContentType(
                             name: contentTypeName,
                             slug: slugify(contentTypeName),
-                            type: "text"));
+                            children: [],
+                            type: "composite"));
 
                     if (widget.onCreate != null) {
                       widget.onCreate!(newId);

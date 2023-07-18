@@ -57,7 +57,7 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   Widget build(BuildContext context) {
     return Scaffold(body: BlocBuilder<ContentTypeCubit, ContentTypeState>(
       builder: (context, state) {
-        final item = state.cacheById[widget.slug];
+        final item = state.cacheById[widget.slug]?.cloneDeep();
 
         return ListView(
           children: [
@@ -132,21 +132,16 @@ class _ContentTypeListState extends State<ContentTypeList> {
 
   @override
   Widget build(BuildContext context) {
-    print("Rebuild");
-    return Row(
-      children: [
-        Flexible(child: ContentTypeInputs(contentType: contentType)),
-        Container(
-          width: 20,
-        ),
-        addNewFieldButton()
-      ],
-    );
+    return Flexible(
+        child: ContentTypeInputs(
+      contentType: contentType,
+      onChange: () {
+        setState(() {});
+      },
+    ));
   }
 
   Widget addNewFieldButton() {
-    // final cubitState = context.read<ContentTypeCubit>();
-
     return Container(
       alignment: Alignment.centerRight,
       child: ElevatedButton(
