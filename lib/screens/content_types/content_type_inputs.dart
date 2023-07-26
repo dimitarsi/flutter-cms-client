@@ -5,11 +5,16 @@ import '../../service/models/content.dart';
 
 class ContentTypeInputs extends StatelessWidget {
   ContentTypeInputs(
-      {super.key, required this.contentType, this.child, this.onChange});
+      {super.key,
+      required this.contentType,
+      this.child,
+      this.onChange,
+      this.onSelectType});
 
   ContentType contentType;
   Widget? child;
   void Function()? onChange;
+  void Function(ContentType)? onSelectType;
 
   List<Widget> getChildren(ContentType contentType, {ContentType? parent}) {
     final input = getInputByType(contentType!, parent: parent);
@@ -21,31 +26,60 @@ class ContentTypeInputs extends StatelessWidget {
       return value;
     });
 
-    Widget addButton = IconButton(
+    String newInputName = "";
+
+    final addButton = IconButton(
         onPressed: () {
-          if (contentType.type == "composite") {
-            contentType
-                .addChild(ContentType(name: "New", slug: "", type: "text"));
-            onChange?.call();
+          if (newInputName.isEmpty) {
+            return;
           }
+
+          final childType = parent == null ? "composite" : "text";
+          final ct = ContentType(
+              name: newInputName, slug: slugify(newInputName), type: childType);
+
+          contentType.addChild(ct);
+
+          onChange?.call();
         },
         icon: Icon(Icons.add));
-
-    addButton = Align(
-      alignment: Alignment.topLeft,
-      child: addButton,
-    );
 
     if (nestedChildren.length != 0) {
       nestedChildren = [
         spacerBefore(),
         ...nestedChildren.toList(),
-        if (contentType.type == "composite")
-          Padding(
-            padding: EdgeInsets.only(top: 10),
-            child: addButton,
-          ),
-        spacerAfter()
+      ];
+    }
+
+    final newInput = TextFormField(
+      decoration: InputDecoration(hintText: "Add new field"),
+      onChanged: (value) {
+        newInputName = value;
+      },
+    );
+
+    nestedChildren = [
+      ...nestedChildren,
+      if (contentType.type == "composite")
+        Row(
+          children: [
+            Container(
+              padding: EdgeInsets.only(left: 15),
+              constraints: BoxConstraints(maxWidth: 400),
+              child: newInput,
+            ),
+            addButton
+          ],
+        ),
+      if (contentType.type == "composite") spacerAfter(),
+    ];
+
+    if (parent != null && contentType.type == "composite") {
+      nestedChildren = [
+        ...nestedChildren,
+        const Divider(
+          height: 2,
+        )
       ];
     }
 
@@ -75,31 +109,16 @@ class ContentTypeInputs extends StatelessWidget {
       );
     }
 
-    final childType = parent == null ? "composite" : "text";
-
-    final addButton = IconButton(
+    final changeTypeButton = IconButton(
         onPressed: () {
-          if (contentType.type == "composite") {
-            contentType
-                .addChild(ContentType(name: "New", slug: "", type: childType));
-            onChange?.call();
-          }
+          onSelectType?.call(contentType);
         },
-        icon: Icon(Icons.add));
+        icon: Icon(Icons.select_all));
 
     return Row(
       children: [
         Flexible(child: input),
-        if (parent == null) addButton,
-        IconButton(onPressed: () {}, icon: Icon(Icons.select_all)),
-        // if (contentType != "composite")
-        //   SizedBox(
-        //     width: 40,
-        //   ),
-        if (parent == null)
-          SizedBox(
-            width: 40,
-          ),
+        changeTypeButton,
         if (parent != null)
           IconButton(
             onPressed: () {

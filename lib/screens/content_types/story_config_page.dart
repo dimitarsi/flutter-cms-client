@@ -1,9 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/screens/content_types/content_type_inputs.dart';
 import 'package:plenty_cms/service/models/content.dart';
 import 'package:plenty_cms/state/content_type_cubit.dart';
@@ -45,12 +42,14 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
   ButtonStyle addFieldOrRowButtonStyle = ElevatedButton.styleFrom(
       padding: const EdgeInsets.all(3), minimumSize: const Size(30, 30));
   String? referenceListValue;
+  bool showOverlay = false;
 
   @override
   void initState() {
     super.initState();
 
     context.read<ContentTypeCubit>().loadSingle(idOrSlug: widget.slug);
+    context.read<ContentTypeCubit>().loadPage(page: 1);
   }
 
   @override
@@ -58,15 +57,72 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
     return Scaffold(body: BlocBuilder<ContentTypeCubit, ContentTypeState>(
       builder: (context, state) {
         final item = state.cacheById[widget.slug]?.cloneDeep();
+        final items = state.cacheByPage["1"]?.entities ?? [];
 
-        return ListView(
+        return Stack(
           children: [
-            pageTitle(),
-            Container(
-              height: 80,
-            ),
-            if (item != null) ContentTypeList(contentType: item),
-            saveButtons(item)
+            Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: ListView(
+                  children: [
+                    pageTitle(),
+                    Container(
+                      height: 80,
+                    ),
+                    if (item != null)
+                      ContentTypeList(
+                          contentType: item,
+                          onSelectType: () {
+                            setState(() {
+                              showOverlay = true;
+                            });
+                          }),
+                    saveButtons(item)
+                  ],
+                )),
+            if (showOverlay) ...[
+              Positioned(
+                  left: 0,
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        showOverlay = false;
+                      });
+                    },
+                    child: Container(
+                      alignment: Alignment.centerRight,
+                      color: Colors.black.withAlpha(30),
+                    ),
+                  )),
+              Positioned(
+                right: 20,
+                top: 20,
+                bottom: 20,
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  constraints: BoxConstraints(
+                      maxWidth: 600,
+                      maxHeight: MediaQuery.of(context).size.height - 40),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20)),
+                  child: ListView.builder(
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(items.elementAt(index).name),
+                      );
+                    },
+                    itemCount: items.length,
+                  ),
+                ),
+              ),
+            ],
           ],
         );
       },
@@ -116,9 +172,10 @@ class _StoryConfigPageState extends State<StoryConfigPage> {
 }
 
 class ContentTypeList extends StatefulWidget {
-  const ContentTypeList({super.key, required this.contentType});
+  ContentTypeList({super.key, required this.contentType, this.onSelectType});
 
   final ContentType contentType;
+  final void Function()? onSelectType;
 
   @override
   State<ContentTypeList> createState() =>
@@ -132,92 +189,34 @@ class _ContentTypeListState extends State<ContentTypeList> {
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-        child: ContentTypeInputs(
-      contentType: contentType,
-      onChange: () {
-        setState(() {});
-      },
-    ));
+    return ContentTypeInputs(
+        contentType: contentType,
+        onChange: () {
+          setState(() {});
+        },
+        onSelectType: (ContentType contentType) {
+          widget.onSelectType?.call();
+        });
   }
 
-  Widget addNewFieldButton() {
+  Widget saveButtons(BuildContext context) {
     return Container(
-      alignment: Alignment.centerRight,
-      child: ElevatedButton(
-        child: Text("Edit"),
-        onPressed: () {
-          final formKey = GlobalKey<FormState>();
-
-          showGeneralDialog(
-              context: context,
-              anchorPoint: Offset(1, 0.5),
-              pageBuilder: (context, anim, animcontrl) {
-                final buttonWithInput = [
-                  TextFormField(
-                      initialValue: contentType.name,
-                      decoration: InputDecoration(label: Text("Name")),
-                      onSaved: (val) {
-                        if (val == null || val.isEmpty) {
-                          return;
-                        }
-
-                        final newContentTypeChild = ContentType(
-                            name: val, slug: slugify(val), type: "text");
-
-                        if (contentType.children == null) {
-                          contentType.children = [newContentTypeChild];
-                          if (contentType.type != "composite") {
-                            contentType.type = "composite";
-                            contentType.name = "";
-                          }
-                        } else {
-                          contentType.children!.add(newContentTypeChild);
-                        }
-                        print("Add more children");
-                        setState(() {});
-                      }),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                          onPressed: () {
-                            context.pop();
-                          },
-                          child: Text("Close")),
-                      ElevatedButton(
-                          onPressed: () {
-                            formKey.currentState?.save();
-                            context.pop();
-                          },
-                          child: Text("Save"))
-                    ],
-                  )
-                ];
-
-                return Scaffold(
-                  backgroundColor: Colors.transparent,
-                  body: Form(
-                    key: formKey,
-                    child: Container(
-                      alignment: Alignment.topRight,
-                      padding: EdgeInsets.all(20),
-                      child: Container(
-                        color: Colors.white,
-                        width: max(700,
-                            max(300, MediaQuery.of(context).size.width * 0.25)),
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 10, bottom: 10),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: buttonWithInput),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              });
-        },
+      height: 40,
+      padding: EdgeInsets.only(left: 20, right: 20, bottom: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          ElevatedButton(
+              onPressed: () {
+                context.pop();
+              },
+              child: Text("Cancel")),
+          ElevatedButton(
+              onPressed: () {
+                context.pop();
+              },
+              child: Text("Update"))
+        ],
       ),
     );
   }
