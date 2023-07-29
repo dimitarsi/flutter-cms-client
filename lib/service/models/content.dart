@@ -44,12 +44,14 @@ class Content {
 
 @JsonSerializable()
 class ContentType {
-  ContentType(
-      {required this.name,
-      this.children,
-      this.id,
-      required this.slug,
-      required this.type});
+  ContentType({
+    required this.name,
+    this.children,
+    this.id,
+    this.freezed = false,
+    required this.slug,
+    required this.type,
+  });
 
   String name;
   @JsonKey(name: "_id")
@@ -58,6 +60,11 @@ class ContentType {
 
   List<ContentType>? children;
   String slug;
+
+  @JsonKey(
+    defaultValue: false,
+  )
+  bool freezed;
 
   factory ContentType.fromJson(Map<String, dynamic> json) =>
       _$ContentTypeFromJson(json);

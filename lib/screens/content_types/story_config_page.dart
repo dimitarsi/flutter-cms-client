@@ -190,13 +190,15 @@ class _ContentTypeListState extends State<ContentTypeList> {
   @override
   Widget build(BuildContext context) {
     return ContentTypeInputs(
-        contentType: contentType,
-        onChange: () {
-          setState(() {});
-        },
-        onSelectType: (ContentType contentType) {
-          widget.onSelectType?.call();
-        });
+      contentType: contentType,
+      onChange: () {
+        setState(() {});
+      },
+      onSelectType: (ContentType contentType) {
+        widget.onSelectType?.call();
+      },
+      onNavigateTo: (path) => context.push(path),
+    );
   }
 
   Widget saveButtons(BuildContext context) {

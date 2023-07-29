@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
 
+import '../../app_router.dart';
 import '../../service/models/content.dart';
+
+const allowedGroupTypes = ["composite", "root"];
 
 class ContentTypeInputs extends StatelessWidget {
   ContentTypeInputs(
@@ -9,22 +12,25 @@ class ContentTypeInputs extends StatelessWidget {
       required this.contentType,
       this.child,
       this.onChange,
-      this.onSelectType});
+      this.onSelectType,
+      this.onNavigateTo});
 
   ContentType contentType;
   Widget? child;
   void Function()? onChange;
   void Function(ContentType)? onSelectType;
+  void Function(String path)? onNavigateTo;
 
   List<Widget> getChildren(ContentType contentType, {ContentType? parent}) {
     final input = getInputByType(contentType!, parent: parent);
 
-    List<Widget> nestedChildren =
-        (contentType.children ?? []).fold([], (value, e) {
-      final nextLevel = getChildren(e, parent: contentType);
-      value.addAll(nextLevel);
-      return value;
-    });
+    List<Widget> nestedChildren = contentType.freezed
+        ? []
+        : (contentType.children ?? []).fold([], (value, e) {
+            final nextLevel = getChildren(e, parent: contentType);
+            value.addAll(nextLevel);
+            return value;
+          });
 
     String newInputName = "";
 
@@ -44,44 +50,37 @@ class ContentTypeInputs extends StatelessWidget {
         },
         icon: Icon(Icons.add));
 
-    if (nestedChildren.length != 0) {
-      nestedChildren = [
-        spacerBefore(),
-        ...nestedChildren.toList(),
-      ];
-    }
+    nestedChildren = nestedChildren.toList();
 
-    final newInput = TextFormField(
-      decoration: InputDecoration(hintText: "Add new field"),
+    final newInputHint = parent == null ? "Add Group" : "Add field";
+
+    Widget newInput = TextFormField(
+      decoration: InputDecoration(hintText: newInputHint),
       onChanged: (value) {
         newInputName = value;
       },
     );
 
+    newInput = parent != null
+        ? Padding(padding: EdgeInsets.only(left: 15), child: newInput)
+        : newInput;
+
+    newInput = Row(
+      children: [
+        Container(
+          constraints: BoxConstraints(maxWidth: 400),
+          child: newInput,
+        ),
+        addButton
+      ],
+    );
+
     nestedChildren = [
       ...nestedChildren,
-      if (contentType.type == "composite")
-        Row(
-          children: [
-            Container(
-              padding: EdgeInsets.only(left: 15),
-              constraints: BoxConstraints(maxWidth: 400),
-              child: newInput,
-            ),
-            addButton
-          ],
-        ),
-      if (contentType.type == "composite") spacerAfter(),
+      if (contentType.freezed == false &&
+          allowedGroupTypes.contains(contentType.type))
+        newInput,
     ];
-
-    if (parent != null && contentType.type == "composite") {
-      nestedChildren = [
-        ...nestedChildren,
-        const Divider(
-          height: 2,
-        )
-      ];
-    }
 
     return [input, ...nestedChildren];
   }
@@ -94,42 +93,67 @@ class ContentTypeInputs extends StatelessWidget {
   }
 
   Widget getInputByType(ContentType contentType, {ContentType? parent}) {
-    Widget input = TextFormField(
-      initialValue: contentType.name,
-      onChanged: (value) {
-        contentType.slug = slugify(value);
-        contentType.name = value;
-      },
-    );
-
-    if (parent != null && contentType.type != "composite") {
-      input = Padding(
-        padding: EdgeInsets.only(left: 15),
-        child: input,
-      );
-    }
-
     final changeTypeButton = IconButton(
         onPressed: () {
           onSelectType?.call(contentType);
         },
         icon: Icon(Icons.select_all));
 
-    return Row(
-      children: [
-        Flexible(child: input),
-        changeTypeButton,
-        if (parent != null)
-          IconButton(
+    final deleteIcon = parent == null
+        ? SizedBox.shrink()
+        : IconButton(
             onPressed: () {
               parent.children?.remove(contentType);
               onChange?.call();
             },
             icon: Icon(Icons.delete),
             iconSize: 16,
-          )
+          );
+
+    final linkIcon = IconButton(
+        onPressed: () {
+          onNavigateTo?.call(AppRouter.getContentTypePath(contentType.slug));
+        },
+        icon: Icon(Icons.link));
+
+    Widget input = TextFormField(
+      enabled: contentType.freezed != true,
+      initialValue: contentType.name,
+      onChanged: contentType.freezed
+          ? null
+          : (value) {
+              contentType.slug = slugify(value);
+              contentType.name = value;
+            },
+    );
+
+    input =
+        wrapInPadding(contentType: contentType, child: input, parent: parent);
+
+    return Row(
+      children: [
+        if (contentType.id != null && parent != null) linkIcon,
+        Flexible(child: input),
+        changeTypeButton,
+        if (parent != null) deleteIcon,
       ],
     );
+  }
+
+  Widget wrapInPadding({
+    required ContentType contentType,
+    ContentType? parent,
+    required Widget child,
+  }) {
+    if (allowedGroupTypes.contains(contentType.type) == false &&
+        parent != null) {
+      return Padding(
+        padding: EdgeInsets.only(left: 15),
+        child: child,
+      );
+    }
+
+    return child;
   }
 
   Widget spacerBefore() => Container(height: 15);
