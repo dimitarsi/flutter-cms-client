@@ -49,6 +49,8 @@ class ContentType {
     this.children,
     this.id,
     this.freezed = false,
+    this.originalName,
+    this.originalSlug,
     required this.slug,
     required this.type,
   });
@@ -57,6 +59,8 @@ class ContentType {
   @JsonKey(name: "_id")
   String? id;
   String type;
+  String? originalName;
+  String? originalSlug;
 
   List<ContentType>? children;
   String slug;

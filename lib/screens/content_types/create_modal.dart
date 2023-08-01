@@ -51,7 +51,7 @@ class _ContentTypeCreateModalState extends State<ContentTypeCreateModal> {
                             name: contentTypeName,
                             slug: slugify(contentTypeName),
                             children: [],
-                            type: "composite"));
+                            type: "root"));
 
                     if (widget.onCreate != null) {
                       widget.onCreate!(newId);

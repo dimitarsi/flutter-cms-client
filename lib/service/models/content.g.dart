@@ -29,6 +29,8 @@ ContentType _$ContentTypeFromJson(Map<String, dynamic> json) => ContentType(
           .toList(),
       id: json['_id'] as String?,
       freezed: json['freezed'] as bool? ?? false,
+      originalName: json['originalName'] as String?,
+      originalSlug: json['originalSlug'] as String?,
       slug: json['slug'] as String,
       type: json['type'] as String,
     );
@@ -38,6 +40,8 @@ Map<String, dynamic> _$ContentTypeToJson(ContentType instance) =>
       'name': instance.name,
       '_id': instance.id,
       'type': instance.type,
+      'originalName': instance.originalName,
+      'originalSlug': instance.originalSlug,
       'children': instance.children,
       'slug': instance.slug,
       'freezed': instance.freezed,

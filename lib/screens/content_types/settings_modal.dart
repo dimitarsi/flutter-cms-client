@@ -3,6 +3,7 @@ import 'package:plenty_cms/service/models/field_type.dart';
 
 import '../../service/models/content.dart';
 
+@deprecated
 class FieldSettingsModal extends StatefulWidget {
   FieldSettingsModal(
       {super.key,
@@ -120,7 +121,6 @@ class _FieldSettingsState extends State<FieldSettingsModal> {
       initialSelection: widget.element.data?['refType'] ?? '',
       dropdownMenuEntries: widget.items,
       onSelected: (String? value) {
-        // referenceListValue = value.toString();
         widget.element.data ??= {};
         widget.element.data!['refType'] = value ?? '';
         widget.onSelected?.call();

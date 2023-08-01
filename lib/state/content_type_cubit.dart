@@ -36,18 +36,19 @@ class ContentTypeCubit extends Cubit<ContentTypeState> {
         listCache: state.cacheByPage, singleCache: state.cacheById));
   }
 
-  void loadSingle({required String idOrSlug, bool reload = false}) async {
+  Future<ContentType?> loadSingle(
+      {required String idOrSlug, bool reload = false}) async {
     final itemIsLoaded = state.cacheById.keys.contains(idOrSlug);
 
-    if (itemIsLoaded && reload == false) {
-      return;
+    if (!itemIsLoaded || reload) {
+      final resp = await client.getStoryConfig(idOrSlug);
+      state.cacheById[idOrSlug] = resp;
     }
-
-    final resp = await client.getStoryConfig(idOrSlug);
-    state.cacheById[idOrSlug] = resp;
 
     emit(ContentTypeState(
         listCache: state.cacheByPage, singleCache: state.cacheById));
+
+    return state.cacheById[idOrSlug];
   }
 
   void update(ContentType contentType) async {

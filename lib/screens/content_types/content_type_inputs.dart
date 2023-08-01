@@ -34,34 +34,41 @@ class ContentTypeInputs extends StatelessWidget {
 
     String newInputName = "";
 
-    final addButton = IconButton(
-        onPressed: () {
-          if (newInputName.isEmpty) {
-            return;
-          }
+    final shouldAddGroup = parent == null &&
+        contentType.children!
+                .where((element) =>
+                    element.type == "composite" || element.type == "root")
+                .length >
+            0;
 
-          final childType = parent == null ? "composite" : "text";
-          final ct = ContentType(
-              name: newInputName, slug: slugify(newInputName), type: childType);
+    add() {
+      if (newInputName.isEmpty) {
+        return;
+      }
 
-          contentType.addChild(ct);
+      final childType = shouldAddGroup ? "composite" : "text";
+      final ct = ContentType(
+          name: newInputName, slug: slugify(newInputName), type: childType);
 
-          onChange?.call();
-        },
-        icon: Icon(Icons.add));
+      contentType.addChild(ct);
+      onChange?.call();
+    }
+
+    final addButton = IconButton(onPressed: add, icon: Icon(Icons.add));
 
     nestedChildren = nestedChildren.toList();
 
-    final newInputHint = parent == null ? "Add Group" : "Add field";
+    final newInputHint =
+        shouldAddGroup ? "Add Group" : "Add ${contentType.name} Field";
 
     Widget newInput = TextFormField(
-      decoration: InputDecoration(hintText: newInputHint),
-      onChanged: (value) {
-        newInputName = value;
-      },
-    );
+        decoration: InputDecoration(hintText: newInputHint),
+        onChanged: (value) {
+          newInputName = value;
+        },
+        onEditingComplete: add);
 
-    newInput = parent != null
+    newInput = shouldAddGroup == false
         ? Padding(padding: EdgeInsets.only(left: 15), child: newInput)
         : newInput;
 
@@ -111,20 +118,20 @@ class ContentTypeInputs extends StatelessWidget {
           );
 
     final linkIcon = IconButton(
-        onPressed: () {
-          onNavigateTo?.call(AppRouter.getContentTypePath(contentType.slug));
-        },
-        icon: Icon(Icons.link));
+      onPressed: () {
+        onNavigateTo?.call(AppRouter.getContentTypePath(contentType.slug));
+      },
+      icon: Icon(Icons.link),
+      tooltip: contentType.originalName,
+    );
 
     Widget input = TextFormField(
-      enabled: contentType.freezed != true,
+      // enabled: contentType.freezed != true,
       initialValue: contentType.name,
-      onChanged: contentType.freezed
-          ? null
-          : (value) {
-              contentType.slug = slugify(value);
-              contentType.name = value;
-            },
+      onChanged: (value) {
+        contentType.slug = slugify(value);
+        contentType.name = value;
+      },
     );
 
     input =
