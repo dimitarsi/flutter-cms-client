@@ -29,25 +29,25 @@ class LoginFormView extends StatelessWidget {
       key: loginFormKey,
       child: Column(
         children: [
-          FormField(
-            builder: (context) => SizedBox(
-              width: 300,
-              child: TextFormField(
-                controller: form.email,
-                validator: isEmailValidator,
-                decoration: const InputDecoration(labelText: "Email"),
-              ),
+          SizedBox(
+            width: 300,
+            child: TextFormField(
+              controller: form.email,
+              validator: isEmailValidator,
+              decoration: const InputDecoration(labelText: "Email"),
+              onEditingComplete: () => _submit(context),
             ),
           ),
-          FormField(
-            builder: (context) => SizedBox(
-              width: 300,
-              child: TextFormField(
-                controller: form.password,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: "Password"),
-                validator: isPasswordValidator,
-              ),
+          SizedBox(
+            width: 300,
+            child: TextFormField(
+              controller: form.password,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: "Password"),
+              validator: isPasswordValidator,
+              onEditingComplete: () {
+                _submit(context);
+              },
             ),
           ),
           const SizedBox(
@@ -56,17 +56,7 @@ class LoginFormView extends StatelessWidget {
           SizedBox(
             width: 300,
             child: ElevatedButton(
-                onPressed: () {
-                  if (loginFormKey.currentState != null) {
-                    var formState = loginFormKey.currentState;
-
-                    if (formState != null && formState.validate()) {
-                      context
-                          .read<AuthCubit>()
-                          .login(form.getUserCredentials());
-                    }
-                  }
-                },
+                onPressed: () => _submit(context),
                 child: const Padding(
                   padding: EdgeInsets.symmetric(vertical: 15),
                   child: Text("Submit"),
@@ -108,5 +98,15 @@ class LoginFormView extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _submit(BuildContext context) {
+    if (loginFormKey.currentState != null) {
+      var formState = loginFormKey.currentState;
+
+      if (formState != null && formState.validate()) {
+        context.read<AuthCubit>().login(form.getUserCredentials());
+      }
+    }
   }
 }
