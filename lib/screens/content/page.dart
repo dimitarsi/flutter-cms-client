@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:plenty_cms/helpers/slugify.dart';
-import 'package:plenty_cms/screens/content/DynamicField.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/new_upload.dart';
 import 'package:plenty_cms/service/models/content.dart';
-import 'package:plenty_cms/widgets/form/file_picker_ui.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
 
 import '../../state/content_type_cubit.dart';

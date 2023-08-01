@@ -69,7 +69,7 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<ContentCubit>(
           create: (context) {
-            final state = ContentCubitState();
+            final state = ContentCubitState.empty();
             return ContentCubit(state, client: restClient);
           },
         ),

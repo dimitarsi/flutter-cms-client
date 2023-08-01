@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/data/rest_response.dart';
+import 'package:plenty_cms/state/cache_options.dart';
 
 import '../service/models/content.dart';
 
@@ -22,10 +23,10 @@ class ContentTypeCubit extends Cubit<ContentTypeState> {
   ContentTypeCubit(ContentTypeState initialState, {required this.client})
       : super(initialState);
 
-  void loadPage({int page = 1, bool reload = false}) async {
+  void loadPage({int page = 1, CacheOptions? options}) async {
     final pageIsLoaded = state.cacheByPage.keys.contains(page);
 
-    if (pageIsLoaded && reload == false) {
+    if (pageIsLoaded && options?.reload == false) {
       return;
     }
 
@@ -37,10 +38,10 @@ class ContentTypeCubit extends Cubit<ContentTypeState> {
   }
 
   Future<ContentType?> loadSingle(
-      {required String idOrSlug, bool reload = false}) async {
+      {required String idOrSlug, CacheOptions? options}) async {
     final itemIsLoaded = state.cacheById.keys.contains(idOrSlug);
 
-    if (!itemIsLoaded || reload) {
+    if (!itemIsLoaded || options?.reload == true) {
       final resp = await client.getStoryConfig(idOrSlug);
       state.cacheById[idOrSlug] = resp;
     }
