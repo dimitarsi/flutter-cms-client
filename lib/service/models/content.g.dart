@@ -12,6 +12,8 @@ Content _$ContentFromJson(Map<String, dynamic> json) => Content(
       slug: json['slug'] as String?,
       data: json['data'],
       type: json['type'] as String?,
+      folderLocation: json['folderLocation'] as String?,
+      folderTarget: json['folderTarget'] as String?,
     );
 
 Map<String, dynamic> _$ContentToJson(Content instance) => <String, dynamic>{
@@ -19,6 +21,8 @@ Map<String, dynamic> _$ContentToJson(Content instance) => <String, dynamic>{
       'name': instance.name,
       'slug': instance.slug,
       'type': instance.type,
+      'folderLocation': instance.folderLocation,
+      'folderTarget': instance.folderTarget,
       'data': instance.data,
     };
 

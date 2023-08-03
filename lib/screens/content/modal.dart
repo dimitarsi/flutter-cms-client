@@ -119,27 +119,28 @@ class _ContentModalCreateState extends State<ContentModalCreate> {
                 }
 
                 String slug = slugify(title);
-
+                String folderTarget = '';
                 if (type == "folder") {
-                  slug = "${widget.folder}/$slug"
-                      .replaceAll(RegExp(r'/\/{2,}/'), '/');
+                  folderTarget =
+                      "${widget.folder}/$slug".replaceAll(RegExp(r'\/+'), '/');
                 }
 
                 final data = Content(
-                  data: {},
-                  name: title,
-                  slug: slug,
-                  type: type,
-                );
+                    data: {},
+                    name: title,
+                    slug: slug,
+                    type: type,
+                    folderLocation: widget.folder,
+                    folderTarget: folderTarget);
 
                 if (type == "document" && contentTypeId != null) {
                   // data.configId = contentTypeId;
                 }
 
-                final newId = await widget.client.createStory(data);
+                await widget.client.createStory(data);
 
                 if (type == "document" && widget.onDocumentCreated != null) {
-                  widget.onDocumentCreated!(newId);
+                  widget.onDocumentCreated!(slug);
                 }
 
                 if (type == "folder" && widget.onFolderCreated != null) {

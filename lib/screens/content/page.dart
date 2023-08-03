@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:plenty_cms/helpers/slugify.dart';
 import 'package:plenty_cms/service/client/client.dart';
-import 'package:plenty_cms/service/models/new_upload.dart';
 import 'package:plenty_cms/service/models/content.dart';
+import 'package:plenty_cms/state/content_cubit.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
-
-import '../../state/content_type_cubit.dart';
 
 class StoryPageScaffold extends StatelessWidget {
   const StoryPageScaffold(
@@ -62,34 +59,7 @@ class _StoryPageState extends State<StoryPage> {
   void initState() {
     super.initState();
 
-    // Future.wait([
-    //   widget.client.getStoryBySlugOrId(widget.slug),
-    // ]).then((val) {
-    //   final value = (val[0] as Content);
-
-    //   if (value.configId != null) {
-    //     loadFullConfig(value.configId!);
-    //   }
-    // }).catchError((error) {
-    //   print("Unable to fetch page data - ${error}");
-    // });
-
-    // widget.client.listStoryConfigs().then((response) {
-    //   setState(() {
-    //     configs = response.entities.toList();
-    //   });
-    // });
-  }
-
-  Future<void> loadFullConfig(String configId) async {
-    config = await widget.client.getStoryConfig(configId);
-
-    if (config != null) {
-      dropdownController.text = config?.name ?? "";
-      selectedConfigId = config?.id!;
-    }
-
-    setState(() {});
+    context.read<ContentCubit>().loadById(widget.slug);
   }
 
   void createOrUpdateStory() {
@@ -97,30 +67,12 @@ class _StoryPageState extends State<StoryPage> {
       return;
     }
 
-    var slug = slugify(controller.text);
-
     var formState = widget.formKey.currentState;
     if (formState == null || !formState.validate()) {
       return;
     }
 
     formState.save();
-
-    // if (widget.slug.isEmpty) {
-    //   widget.client.createStory(Content(
-    //       name: controller.text,
-    //       slug: slug,
-    //       configId: selectedConfigId,
-    //       data: dataBag));
-    // } else {
-    //   widget.client.updateStory(
-    //       widget.slug,
-    //       Content(
-    //           configId: selectedConfigId,
-    //           name: controller.text,
-    //           slug: widget.slug,
-    //           data: dataBag));
-    // }
   }
 
   // Widget dynamicFields() {
@@ -165,9 +117,9 @@ class _StoryPageState extends State<StoryPage> {
   //   );
   // }
 
-  List<NewUpload> _getFieldData(List<dynamic> data) {
-    return data.map((d) => NewUpload.fromJson(d)).toList();
-  }
+  // List<NewUpload> _getFieldData(List<dynamic> data) {
+  //   return data.map((d) => NewUpload.fromJson(d)).toList();
+  // }
 
   // List<Widget> getRows(List<FieldRow> rows) {
   //   return rows.map((e) => DynamicField(data: dataBag[e])).toList();
@@ -339,7 +291,7 @@ class _StoryPageState extends State<StoryPage> {
       dropdownMenuEntries: dropdownChildren.toList(),
       controller: dropdownController,
       onSelected: (value) {
-        loadFullConfig(value.toString());
+        // loadFullConfig(value.toString());
         setState(() {
           selectedConfigId = value.toString();
         });
@@ -357,10 +309,16 @@ class _StoryPageState extends State<StoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    // final items = context.
-    final items = context.read<ContentTypeCubit>();
+    return BlocBuilder<ContentCubit, ContentCubitState>(
+        builder: ((context, state) {
+      final item = state.cacheByIdOrSlug[widget.slug];
 
-    return Text("ContentType");
+      if (item == null) {
+        return Text("Loading");
+      }
+
+      return Text(item.name ?? "Unknown Name");
+    }));
   }
 
   // void openRefModal(String contentType,

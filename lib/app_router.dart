@@ -100,8 +100,15 @@ class AppRouter {
           builder: (context, state) => StoryConfigPage(slug: '')),
       GoRoute(
         path: contentListPath,
-        builder: (context, state) => StoryListScaffold(
-            client: restClient, folder: state.queryParams["folder"]),
+        builder: (context, state) {
+          final queryPageParam = state.queryParams["page"] ?? "";
+          final page =
+              queryPageParam.isEmpty ? 1 : int.tryParse(queryPageParam);
+          return StoryListScaffold(
+              client: restClient,
+              folder: state.queryParams["folder"] ?? "/",
+              page: page ?? 1);
+        },
       ),
       GoRoute(
         path: componentsListPath,

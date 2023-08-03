@@ -5,18 +5,21 @@ part 'content.g.dart';
 
 @JsonSerializable()
 class Content {
-  Content({
-    this.id,
-    this.name,
-    this.slug,
-    this.data,
-    this.type,
-  });
+  Content(
+      {this.id,
+      this.name,
+      this.slug,
+      this.data,
+      this.type,
+      this.folderLocation,
+      this.folderTarget});
 
   String? id;
   String? name;
   String? slug;
   String? type;
+  String? folderLocation;
+  String? folderTarget;
 
   dynamic data;
 

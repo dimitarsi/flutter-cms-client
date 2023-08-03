@@ -33,7 +33,8 @@ class ContentCubit extends Cubit<ContentCubitState> {
       CacheOptions? options}) async {
     final cacheKey = "$folder?page=$page";
 
-    if (state.cacheByFolderAndPage.keys.contains(cacheKey)) {
+    if (state.cacheByFolderAndPage.keys.contains(cacheKey) &&
+        options?.reload != true) {
       return;
     }
 
