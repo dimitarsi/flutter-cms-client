@@ -60,6 +60,7 @@ class _StoryPageState extends State<StoryPage> {
     super.initState();
 
     context.read<ContentCubit>().loadById(widget.slug);
+    context.read<ContentCubit>().loadConfigBySlug(widget.slug);
   }
 
   void createOrUpdateStory() {
@@ -256,48 +257,48 @@ class _StoryPageState extends State<StoryPage> {
   //       ));
   // }
 
-  Widget storyName() {
-    final fieldStoryName = TextFormField(
-      controller: controller,
-      validator: (value) =>
-          value == null || value.isEmpty ? "Name is required" : null,
-      decoration: const InputDecoration(
-        label: Text("Story Name"),
-      ),
-    );
+  // Widget storyName() {
+  //   final fieldStoryName = TextFormField(
+  //     controller: controller,
+  //     validator: (value) =>
+  //         value == null || value.isEmpty ? "Name is required" : null,
+  //     decoration: const InputDecoration(
+  //       label: Text("Story Name"),
+  //     ),
+  //   );
 
-    return Flexible(
-      flex: 3,
-      child: fieldStoryName,
-    );
-  }
+  //   return Flexible(
+  //     flex: 3,
+  //     child: fieldStoryName,
+  //   );
+  // }
 
-  Widget storyType({required int flex}) {
-    var dropdownChildren = configs
-        .where((element) => element.id == null ? false : element.id!.isNotEmpty)
-        .map(
-      (e) {
-        return DropdownMenuEntry(value: e.id!, label: "${e.name}");
-      },
-    );
+  // Widget storyType({required int flex}) {
+  //   var dropdownChildren = configs
+  //       .where((element) => element.id == null ? false : element.id!.isNotEmpty)
+  //       .map(
+  //     (e) {
+  //       return DropdownMenuEntry(value: e.id!, label: "${e.name}");
+  //     },
+  //   );
 
-    if (dropdownChildren.isEmpty) {
-      return const SizedBox.shrink();
-    }
+  //   if (dropdownChildren.isEmpty) {
+  //     return const SizedBox.shrink();
+  //   }
 
-    return DropdownMenu(
-      label: const Text("Type"),
-      enableSearch: true,
-      dropdownMenuEntries: dropdownChildren.toList(),
-      controller: dropdownController,
-      onSelected: (value) {
-        // loadFullConfig(value.toString());
-        setState(() {
-          selectedConfigId = value.toString();
-        });
-      },
-    );
-  }
+  //   return DropdownMenu(
+  //     label: const Text("Type"),
+  //     enableSearch: true,
+  //     dropdownMenuEntries: dropdownChildren.toList(),
+  //     controller: dropdownController,
+  //     onSelected: (value) {
+  //       // loadFullConfig(value.toString());
+  //       setState(() {
+  //         selectedConfigId = value.toString();
+  //       });
+  //     },
+  //   );
+  // }
 
   ElevatedButton saveButton() {
     return ElevatedButton(

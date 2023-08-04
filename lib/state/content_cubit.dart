@@ -7,18 +7,23 @@ import '../service/models/content.dart';
 class ContentCubitState {
   final Map<String, RestResponse<Content>> cacheByFolderAndPage;
   final Map<String, Content> cacheByIdOrSlug;
+  final Map<String, ContentType> cacheCTBySlug;
 
   ContentCubitState(
-      {required this.cacheByFolderAndPage, required this.cacheByIdOrSlug});
+      {required this.cacheByFolderAndPage,
+      required this.cacheByIdOrSlug,
+      required this.cacheCTBySlug});
 
   factory ContentCubitState.fromState(ContentCubitState prev) {
     return ContentCubitState(
         cacheByFolderAndPage: prev.cacheByFolderAndPage,
-        cacheByIdOrSlug: prev.cacheByIdOrSlug);
+        cacheByIdOrSlug: prev.cacheByIdOrSlug,
+        cacheCTBySlug: prev.cacheCTBySlug);
   }
 
   factory ContentCubitState.empty() {
-    return ContentCubitState(cacheByFolderAndPage: {}, cacheByIdOrSlug: {});
+    return ContentCubitState(
+        cacheByFolderAndPage: {}, cacheByIdOrSlug: {}, cacheCTBySlug: {});
   }
 }
 
@@ -56,5 +61,16 @@ class ContentCubit extends Cubit<ContentCubitState> {
 
       emit(ContentCubitState.fromState(state));
     }
+  }
+
+  void loadConfigBySlug(String idOrSlug) async {
+    if (state.cacheCTBySlug.keys.contains(idOrSlug)) {
+      return;
+    }
+
+    final result = await client.getContentTypeByFromContent(idOrSlug);
+
+    state.cacheCTBySlug[idOrSlug] = result;
+    emit(ContentCubitState.fromState(state));
   }
 }

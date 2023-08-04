@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart';
@@ -29,6 +30,7 @@ class RestClient {
   Uri get storyUrl => Uri.parse("$url/content");
   Uri get componentsUrl => Uri.parse("$url/components");
   Uri get storySearchUrl => Uri.parse("$url/content/search");
+  Uri contentConfigUrl(idOrSlug) => Uri.parse("$url/content/$idOrSlug/config");
   Uri get loginUrl => Uri.parse("$url/login");
   Uri get logoutUrl => Uri.parse("$url/logout");
   Uri get usersUrl => Uri.parse("$url/users");
@@ -220,6 +222,17 @@ class RestClient {
       return data.statusCode == 200;
     } catch (_e) {
       return false;
+    }
+  }
+
+  Future<ContentType> getContentTypeByFromContent(String idOrSlug) async {
+    try {
+      final result = await get(contentConfigUrl(idOrSlug), headers: authHeader);
+      final body = jsonDecode(result.body);
+      return ContentType.fromJson(body);
+    } catch (err) {
+      print("Error $err");
+      rethrow;
     }
   }
 }

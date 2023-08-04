@@ -12,7 +12,8 @@ class Content {
       this.data,
       this.type,
       this.folderLocation,
-      this.folderTarget});
+      this.folderTarget,
+      this.configId});
 
   String? id;
   String? name;
@@ -20,6 +21,7 @@ class Content {
   String? type;
   String? folderLocation;
   String? folderTarget;
+  String? configId;
 
   dynamic data;
 

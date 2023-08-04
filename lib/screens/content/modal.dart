@@ -108,48 +108,48 @@ class _ContentModalCreateState extends State<ContentModalCreate> {
               ),
             ],
           ),
-          ElevatedButton(
-              onPressed: () async {
-                final formState = widget.formKey.currentState;
-
-                if (formState != null && formState.validate()) {
-                  formState.save();
-                } else {
-                  return;
-                }
-
-                String slug = slugify(title);
-                String folderTarget = '';
-                if (type == "folder") {
-                  folderTarget =
-                      "${widget.folder}/$slug".replaceAll(RegExp(r'\/+'), '/');
-                }
-
-                final data = Content(
-                    data: {},
-                    name: title,
-                    slug: slug,
-                    type: type,
-                    folderLocation: widget.folder,
-                    folderTarget: folderTarget);
-
-                if (type == "document" && contentTypeId != null) {
-                  // data.configId = contentTypeId;
-                }
-
-                await widget.client.createStory(data);
-
-                if (type == "document" && widget.onDocumentCreated != null) {
-                  widget.onDocumentCreated!(slug);
-                }
-
-                if (type == "folder" && widget.onFolderCreated != null) {
-                  widget.onFolderCreated!();
-                }
-              },
-              child: const Text("Create"))
+          ElevatedButton(onPressed: saveContent, child: const Text("Create"))
         ],
       ),
     );
+  }
+
+  void saveContent() async {
+    final formState = widget.formKey.currentState;
+
+    if (formState != null && formState.validate()) {
+      formState.save();
+    } else {
+      return;
+    }
+
+    String slug = slugify(title);
+    String folderTarget = '';
+    if (type == "folder") {
+      folderTarget = "${widget.folder}/$slug".replaceAll(RegExp(r'\/+'), '/');
+    }
+
+    final data = Content(
+      data: {},
+      name: title,
+      slug: slug,
+      type: type,
+      folderLocation: widget.folder,
+      folderTarget: folderTarget,
+    );
+
+    if (type == "document" && contentTypeId != null) {
+      data.configId = contentTypeId;
+    }
+
+    await widget.client.createStory(data);
+
+    if (type == "document" && widget.onDocumentCreated != null) {
+      widget.onDocumentCreated!(slug);
+    }
+
+    if (type == "folder" && widget.onFolderCreated != null) {
+      widget.onFolderCreated!();
+    }
   }
 }
