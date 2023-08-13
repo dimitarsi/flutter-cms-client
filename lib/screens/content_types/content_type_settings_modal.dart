@@ -31,7 +31,7 @@ final List<dynamic> buttonTypes = [
   {"text": "Date", "color": Colors.green, "type": "date"},
   {"text": "Toggle", "color": Colors.orange, "type": "toggle"},
   {"text": "Rich Text", "color": Colors.purple, "type": "rich-text"},
-  {"text": "Media", "color": Colors.yellow.shade700, "type": "media"},
+  {"text": "Media", "color": Colors.yellow.shade700, "type": "files"},
 ];
 
 class _ContentTypeSettingsModalState extends State<ContentTypeSettingsModal>

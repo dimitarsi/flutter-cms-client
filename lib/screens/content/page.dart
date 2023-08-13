@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/service/models/content.dart';
 import 'package:plenty_cms/state/content_cubit.dart';
 import 'package:plenty_cms/widgets/navigation/sidenav.dart';
+
+import 'content_type_input_field.dart';
 
 class StoryPageScaffold extends StatelessWidget {
   const StoryPageScaffold(
@@ -46,7 +50,7 @@ class StoryPage extends StatefulWidget {
 
 // TODO: Use async.dart with StreamBuilder here
 class _StoryPageState extends State<StoryPage> {
-  TextEditingController controller = TextEditingController();
+  // TextEditingController controller = TextEditingController();
   TextEditingController dropdownController = TextEditingController();
   String? selectedConfigId;
 
@@ -63,10 +67,10 @@ class _StoryPageState extends State<StoryPage> {
     context.read<ContentCubit>().loadConfigBySlug(widget.slug);
   }
 
-  void createOrUpdateStory() {
-    if (controller.text.isEmpty) {
-      return;
-    }
+  void createOrUpdateStory({VoidCallback? onSave}) {
+    // if (controller.text.isEmpty) {
+    //   return;
+    // }
 
     var formState = widget.formKey.currentState;
     if (formState == null || !formState.validate()) {
@@ -74,6 +78,7 @@ class _StoryPageState extends State<StoryPage> {
     }
 
     formState.save();
+    onSave?.call();
   }
 
   // Widget dynamicFields() {
@@ -300,9 +305,10 @@ class _StoryPageState extends State<StoryPage> {
   //   );
   // }
 
-  ElevatedButton saveButton() {
+  ElevatedButton saveButton({VoidCallback? onSave}) {
     return ElevatedButton(
-        onPressed: createOrUpdateStory, child: const Text("Save"));
+        onPressed: () => createOrUpdateStory(onSave: onSave),
+        child: const Text("Save"));
   }
 
   bool isRefListLoading = false;
@@ -310,16 +316,40 @@ class _StoryPageState extends State<StoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ContentCubit, ContentCubitState>(
-        builder: ((context, state) {
-      final item = state.cacheByIdOrSlug[widget.slug];
+    return Form(
+      key: widget.formKey,
+      child: BlocBuilder<ContentCubit, ContentCubitState>(
+          builder: ((context, state) {
+        final item = state.cacheByIdOrSlug[widget.slug];
+        final contentType = state.cacheCTBySlug[widget.slug];
 
-      if (item == null) {
-        return Text("Loading");
-      }
+        if (item == null) {
+          return Text("Loading");
+        }
 
-      return Text(item.name ?? "Unknown Name");
-    }));
+        return Column(
+          children: [
+            Expanded(
+              child: ListView(
+                children: [
+                  ...(contentType?.children ?? []).map(
+                    (e) => ContentTypeInputField(contentType: e, content: item),
+                  )
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                saveButton(onSave: () {
+                  print(jsonEncode(item));
+                })
+              ],
+            )
+          ],
+        );
+      })),
+    );
   }
 
   // void openRefModal(String contentType,

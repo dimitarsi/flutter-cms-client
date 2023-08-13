@@ -10,10 +10,10 @@ import '../models/user_auth.dart';
 import '../data/pagination.dart';
 
 const applicationJsonUtf8 = "application/json; charset=utf-8";
+const BASE_URL = "http://localhost";
 
 class RestClient {
-  RestClient(
-      {this.baseUrl = "http://localhost", this.port = "8000", this.token = ""});
+  RestClient({this.baseUrl = BASE_URL, this.port = "8000", this.token = ""});
 
   String port;
   String baseUrl;
@@ -178,10 +178,6 @@ class RestClient {
     }
 
     return [];
-  }
-
-  String getImageUrlFromHash(String id) {
-    return "$url/media/$id";
   }
 
   Future<RestResponse<ContentType>> getComponents({page = 1}) async {

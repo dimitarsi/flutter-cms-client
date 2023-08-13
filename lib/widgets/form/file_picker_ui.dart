@@ -1,19 +1,16 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:plenty_cms/service/client/client.dart';
+import 'package:plenty_cms/state/files_cubit.dart';
 
 import '../../service/models/new_upload.dart';
 
 typedef FilesUploadedHandler = void Function(List<NewUpload>);
 
 class FilePickerUi extends StatefulWidget {
-  FilePickerUi(
-      {super.key,
-      required this.client,
-      required this.fieldData,
-      this.onFilesUploaded});
+  FilePickerUi({super.key, required this.fieldData, this.onFilesUploaded});
 
-  final RestClient client;
   final List<NewUpload> fieldData;
   final List<NewUpload> listOfNewUploads = [];
 
@@ -40,8 +37,9 @@ class _FilePickerUiState extends State<FilePickerUi> {
   Widget _leading(NewUpload f) {
     final type = f.type ?? '';
     if (type.startsWith('image') && f.id != null) {
-      return Image.network(widget.client.getImageUrlFromHash(f.id!),
-          height: 80, width: 80, fit: BoxFit.fill);
+      final imageUrl = "$BASE_URL/media/${f.id}";
+
+      return Image.network(imageUrl, height: 80, width: 80, fit: BoxFit.fill);
     }
 
     if (type.startsWith('image') && f.id != null) {
@@ -107,14 +105,16 @@ class _FilePickerUiState extends State<FilePickerUi> {
 
   Widget pickButton() {
     return ElevatedButton(
-        onPressed: _openFilePickDialog, child: const Text("Select files"));
+        onPressed: () => _openFilePickDialog(context),
+        child: const Text("Select files"));
   }
 
-  Future<void> _openFilePickDialog() async {
+  Future<void> _openFilePickDialog(BuildContext context) async {
+    final uploadFiles = context.read<FilesCubitState>().uploadFiles;
     FilePickerResult? pickedFiles =
         await FilePicker.platform.pickFiles(allowMultiple: true);
 
-    List<Future> waitList = [];
+    // List<Future> waitList = [];
 
     for (PlatformFile file in pickedFiles?.files ?? []) {
       widget.listOfNewUploads.add(NewUpload(name: file.name));
@@ -123,17 +123,23 @@ class _FilePickerUiState extends State<FilePickerUi> {
     final files = pickedFiles?.files;
 
     if (files != null) {
-      waitList.add(widget.client.uploadFiles(files));
+      final added = await uploadFiles(files);
 
-      var added = await Future.wait(waitList);
-      var index = 0;
-      for (final resp in added) {
-        for (final fileResult in resp) {
-          widget.listOfNewUploads[index].id = fileResult['id'];
-          widget.listOfNewUploads[index].type = fileResult['type'];
-          index++;
-        }
-      }
+      added.asMap().entries.forEach(
+        (element) {
+          widget.listOfNewUploads[element.key].id = element.value['id'];
+          widget.listOfNewUploads[element.key].type = element.value['type'];
+        },
+      );
+
+      // var index = 0;
+      // for (final resp in added) {
+      //   for (final fileResult in resp) {
+      //     widget.listOfNewUploads[index].id = fileResult['id'];
+      //     widget.listOfNewUploads[index].type = fileResult['type'];
+      //     index++;
+      //   }
+      // }
 
       _callback();
 

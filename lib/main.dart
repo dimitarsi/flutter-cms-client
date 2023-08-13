@@ -5,6 +5,7 @@ import 'package:plenty_cms/service/client/client.dart';
 import 'package:plenty_cms/state/auth_cubit.dart';
 import 'package:plenty_cms/state/content_cubit.dart';
 import 'package:plenty_cms/state/content_type_cubit.dart';
+import 'package:plenty_cms/state/files_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_router.dart';
@@ -78,6 +79,9 @@ class MyApp extends StatelessWidget {
 
           return AuthCubit(state, restClient: restClient);
         }),
+        BlocProvider<FilesCubitState>(create: (_) {
+          return FilesCubitState([], client: restClient);
+        })
       ],
       child: child,
     );
