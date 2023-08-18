@@ -49,7 +49,7 @@ class ContentCubit extends Cubit<ContentCubitState> {
     emit(ContentCubitState.fromState(state));
   }
 
-  void loadById(String idOrSlug) async {
+  Future<void> loadById(String idOrSlug) async {
     if (state.cacheByIdOrSlug.keys.contains(idOrSlug)) {
       return;
     }
@@ -61,9 +61,10 @@ class ContentCubit extends Cubit<ContentCubitState> {
 
       emit(ContentCubitState.fromState(state));
     }
+    return;
   }
 
-  void loadConfigBySlug(String idOrSlug) async {
+  Future<void> loadConfigBySlug(String idOrSlug) async {
     if (state.cacheCTBySlug.keys.contains(idOrSlug)) {
       return;
     }

@@ -37,7 +37,7 @@ class _FilePickerUiState extends State<FilePickerUi> {
   Widget _leading(NewUpload f) {
     final type = f.type ?? '';
     if (type.startsWith('image') && f.id != null) {
-      final imageUrl = "$BASE_URL/media/${f.id}";
+      final imageUrl = "$BASE_URL$BASE_PORT/media/${f.id}";
 
       return Image.network(imageUrl, height: 80, width: 80, fit: BoxFit.fill);
     }

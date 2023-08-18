@@ -11,15 +11,16 @@ import '../data/pagination.dart';
 
 const applicationJsonUtf8 = "application/json; charset=utf-8";
 const BASE_URL = "http://localhost";
+const BASE_PORT = ":8000";
 
 class RestClient {
-  RestClient({this.baseUrl = BASE_URL, this.port = "8000", this.token = ""});
+  RestClient({this.baseUrl = BASE_URL, this.port = BASE_PORT, this.token = ""});
 
   String port;
   String baseUrl;
   String token;
 
-  Uri get url => Uri.parse("$baseUrl:$port");
+  Uri get url => Uri.parse("$baseUrl$port");
   Map<String, String> get authHeader => {"x-access-token": token};
   Map<String, String> get contentTypeHeaders =>
       {"content-type": applicationJsonUtf8};

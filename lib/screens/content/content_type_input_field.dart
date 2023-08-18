@@ -13,7 +13,6 @@ final filedTypeMap = <String, ContentTypeResolver>{
   "root": (ContentType e, {Content? content}) => Text(e.name),
   "date": (ContentType e, {Content? content}) => SizedBox.shrink(),
   "number": getNumberField,
-  // "media": (ContentType e, {Content? content}) => SizedBox.shrink(),
   "reference": (ContentType e, {Content? content}) => SizedBox.shrink(),
   "media": (ContentType e, {Content? content}) =>
       getFilesFiled(e, content: content),
@@ -62,6 +61,13 @@ class ContentTypeInputField extends StatelessWidget {
         final list = <Content>[];
         content.data[e.slug] = list;
         list.add(Content(name: e.name, slug: e.slug, data: null));
+      }
+
+      try {
+        content.data[e.slug] = Content.fromJson(content.data[e.slug]);
+      } catch (_e) {
+        print("Unable to convert ${e.slug} to Content");
+        print(_e);
       }
 
       childFields.add(ContentTypeInputField(

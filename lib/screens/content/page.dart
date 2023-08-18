@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:plenty_cms/service/client/client.dart';
@@ -51,20 +49,38 @@ class StoryPage extends StatefulWidget {
 // TODO: Use async.dart with StreamBuilder here
 class _StoryPageState extends State<StoryPage> {
   // TextEditingController controller = TextEditingController();
-  TextEditingController dropdownController = TextEditingController();
-  String? selectedConfigId;
+  // TextEditingController dropdownController = TextEditingController();
+  // String? selectedConfigId;
 
-  List<ContentType> configs = [];
-  ContentType? config;
+  // List<ContentType> configs = [];
+  // ContentType? config;
 
-  Map<String, dynamic> dataBag = {};
+  // Map<String, dynamic> dataBag = {};
+
+  Content? item = null;
+  ContentType? contentType = null;
 
   @override
   void initState() {
     super.initState();
 
-    context.read<ContentCubit>().loadById(widget.slug);
-    context.read<ContentCubit>().loadConfigBySlug(widget.slug);
+    final contentCubit = context.read<ContentCubit>();
+
+    contentCubit.loadById(widget.slug).then((_void) {
+      setState(() {
+        final asJson =
+            contentCubit.state.cacheByIdOrSlug[widget.slug]?.toJson();
+        if (asJson != null) {
+          item = Content.fromJson(asJson);
+        }
+      });
+    });
+    contentCubit.loadConfigBySlug(widget.slug).then((_void) {
+      setState(() {
+        contentType =
+            contentCubit.state.cacheCTBySlug[widget.slug]?.cloneDeep();
+      });
+    });
   }
 
   void createOrUpdateStory({VoidCallback? onSave}) {
@@ -312,18 +328,23 @@ class _StoryPageState extends State<StoryPage> {
   }
 
   bool isRefListLoading = false;
-  List<Content> modalRefList = [];
+
+  // late final Content item;
+  // late final ContentType contentType;
 
   @override
   Widget build(BuildContext context) {
+    final client = context.read<ContentCubit>().client;
+
     return Form(
       key: widget.formKey,
       child: BlocBuilder<ContentCubit, ContentCubitState>(
           builder: ((context, state) {
-        final item = state.cacheByIdOrSlug[widget.slug];
-        final contentType = state.cacheCTBySlug[widget.slug];
+        // TODO: make local copy of the values, otherwise it will always replace the *new* one
+        // final item = state.cacheByIdOrSlug[widget.slug];
+        // final contentType = state.cacheCTBySlug[widget.slug];
 
-        if (item == null) {
+        if (item == null || contentType == null) {
           return Text("Loading");
         }
 
@@ -333,7 +354,8 @@ class _StoryPageState extends State<StoryPage> {
               child: ListView(
                 children: [
                   ...(contentType?.children ?? []).map(
-                    (e) => ContentTypeInputField(contentType: e, content: item),
+                    (e) =>
+                        ContentTypeInputField(contentType: e, content: item!),
                   )
                 ],
               ),
@@ -342,7 +364,9 @@ class _StoryPageState extends State<StoryPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 saveButton(onSave: () {
-                  print(jsonEncode(item));
+                  if (item != null) {
+                    client.updateStory(widget.slug, item!);
+                  }
                 })
               ],
             )
