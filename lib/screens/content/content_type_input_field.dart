@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:plenty_cms/screens/content/mapper/files.dart';
+import 'package:plenty_cms/screens/content/mappers/files.dart';
 import '../../service/models/content.dart';
-import 'mapper/number.dart';
-import 'mapper/text.dart';
+import 'mappers/number.dart';
+import 'mappers/text.dart';
 
 typedef ContentTypeResolver = Widget Function(ContentType e,
     {Content? content});

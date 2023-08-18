@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/service/models/field_type.dart';
 
-import '../../service/models/content.dart';
+import '../../../service/models/content.dart';
 
 @deprecated
 class FieldSettingsModal extends StatefulWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/service/models/field_type.dart';
 
-import '../../service/models/content.dart';
+import '../../../service/models/content.dart';
 
 var dropdownOptions = [
   DropdownMenuEntry(
@@ -34,6 +34,7 @@ var dropdownOptions = [
   ),
 ];
 
+@Deprecated("Replaced in favor of having a settings modal with buttons list")
 class ContentTypeDropdown extends StatelessWidget {
   ContentTypeDropdown(
       {super.key, required this.element, required this.onSelected});

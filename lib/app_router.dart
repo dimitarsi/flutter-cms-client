@@ -12,8 +12,8 @@ import 'screens/auth/login_page.dart';
 import 'screens/home/home_page.dart';
 import 'screens/content/list.dart';
 import 'screens/content/page.dart';
-import 'screens/content_types/story_config_list.dart';
-import 'screens/content_types/story_config_page.dart';
+import 'screens/content_types/list.dart';
+import 'screens/content_types/page.dart';
 import 'service/client/client.dart';
 import 'state/auth_cubit.dart';
 
