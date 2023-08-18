@@ -119,7 +119,8 @@ class ContentTypeInputs extends StatelessWidget {
 
     final linkIcon = IconButton(
       onPressed: () {
-        onNavigateTo?.call(AppRouter.getContentTypePath(contentType.slug));
+        onNavigateTo?.call(AppRouter.getContentTypePath(
+            contentType.originalSlug ?? contentType.slug));
       },
       icon: Icon(Icons.link),
       tooltip: contentType.originalName,
