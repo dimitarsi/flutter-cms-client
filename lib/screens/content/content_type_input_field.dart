@@ -1,84 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:plenty_cms/screens/content/mappers/files.dart';
+import 'package:plenty_cms/screens/content/mappers/rich_text.dart';
+import 'package:plenty_cms/screens/content/mappers/toggle.dart';
 import '../../service/models/content.dart';
 import 'mappers/number.dart';
 import 'mappers/text.dart';
 
-typedef ContentTypeResolver = Widget Function(ContentType e,
-    {Content? content});
+typedef ContentTypeResolver = Widget Function(ContentType e, {dynamic data});
 
 final filedTypeMap = <String, ContentTypeResolver>{
   "text": getTextField,
-  "composite": (ContentType e, {Content? content}) => Text(e.name),
-  "root": (ContentType e, {Content? content}) => Text(e.name),
-  "date": (ContentType e, {Content? content}) => SizedBox.shrink(),
+  "composite": (ContentType e, {dynamic data}) => Text(e.name),
+  "root": (ContentType e, {dynamic data}) => Text(e.name),
+  "date": (ContentType e, {dynamic data}) => SizedBox.shrink(),
   "number": getNumberField,
-  "reference": (ContentType e, {Content? content}) => SizedBox.shrink(),
-  "media": (ContentType e, {Content? content}) =>
-      getFilesFiled(e, content: content),
-  "other": (ContentType e, {Content? content}) =>
-      Text("Unsupported type - ${e.type}")
+  "toggle": getToggleField,
+  "rich-text": getRichTextEditor,
+  "reference": (ContentType e, {dynamic data}) => SizedBox.shrink(),
+  "media": (ContentType e, {dynamic data}) => getFilesFiled(e, data: data),
 };
 
-class ContentTypeInputField extends StatelessWidget {
-  ContentTypeInputField(
-      {super.key, required this.contentType, required this.content});
+class ContentTypeInputField {
+  ContentTypeInputField({this.contentType, this.content});
 
-  final ContentType contentType;
-  final Content content;
+  final ContentType? contentType;
+  final dynamic content;
 
-  @override
-  Widget build(BuildContext context) {
-    // if (contentType.type != "root" && contentType.type != "composite") {
-    //   return TextFormField(
-    //     decoration: InputDecoration(hintText: contentType.name),
-    //   );
-    // }
-    ContentTypeResolver? resolver = filedTypeMap.keys.contains(contentType.type)
-        ? filedTypeMap[contentType.type]
-        : filedTypeMap['other'];
+  List<Widget> getInputFields() {
+    final type = contentType?.type;
 
-    final contentTypeChildren = (contentType.children ?? []).toSet();
-    late Widget field;
+    if (type == null) {
+      return [];
+    }
+
+    ContentTypeResolver? resolver = filedTypeMap[type];
+
+    final List<Widget> fields = [];
 
     if (resolver == null) {
-      return const SizedBox.shrink();
-    } else {
-      field = resolver(contentType, content: content);
+      return [
+        Text("Unknown field type - $type, only: ${filedTypeMap.keys.join(',')}")
+      ];
     }
 
-    final childFields = [];
+    final field = resolver(contentType!, data: content);
+    final contentTypeChildren = (contentType!.children ?? []).asMap();
+    final data =
+        content != null && content['data'] != null ? content['data'] : null;
+    contentTypeChildren.forEach((index, item) {
+      final subContentTypeInputFields =
+          ContentTypeInputField(contentType: item, content: data);
 
-    for (var i = 0; i < contentTypeChildren.length; i++) {
-      final e = contentTypeChildren.elementAt(i);
+      fields.addAll(subContentTypeInputFields.getInputFields());
+    });
 
-      if (content.data[e.slug] == null) {
-        content.data[e.slug] = Content(name: e.name, slug: e.slug, data: null);
-      }
-
-      //TODO: repeated needs to be implemented
-      if (_isRepeated(e)) {
-        final list = <Content>[];
-        content.data[e.slug] = list;
-        list.add(Content(name: e.name, slug: e.slug, data: null));
-      }
-
-      try {
-        content.data[e.slug] = Content.fromJson(content.data[e.slug]);
-      } catch (_e) {
-        print("Unable to convert ${e.slug} to Content");
-        print(_e);
-      }
-
-      childFields.add(ContentTypeInputField(
-        contentType: e,
-        content: content.data[e.slug],
-      ));
-    }
-
-    return Column(
-      children: [field, ...childFields],
-    );
+    return [field, ...fields];
   }
 
   bool _isRepeated(ContentType _contentType) {

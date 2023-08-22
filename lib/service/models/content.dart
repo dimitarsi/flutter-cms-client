@@ -25,26 +25,22 @@ class Content {
 
   dynamic data;
 
-  String getDataAsString() {
-    return data as String;
-  }
-
-  void setStringData(String val) {
-    data = val;
-  }
-
-  List<Content> getDataAsComponent() {
-    return data as List<Content>;
-  }
-
-  void setComponentData(List<Content> newList) {
-    data = newList;
-  }
-
   factory Content.fromJson(Map<String, dynamic> json) =>
       _$ContentFromJson(json);
 
   Map<String, dynamic> toJson() => _$ContentToJson(this);
+
+  Content cloneDeep() {
+    return Content(
+        id: id,
+        name: name,
+        type: type,
+        slug: slug,
+        folderLocation: folderLocation,
+        folderTarget: folderTarget,
+        configId: configId,
+        data: data == null ? null : data!.cloneDeep());
+  }
 }
 
 @JsonSerializable()
@@ -86,9 +82,44 @@ class ContentType {
   }
 
   void addChild(ContentType contentType) {
-    if (this.children == null) {
-      this.children = [];
-    }
-    this.children!.add(contentType);
+    children ??= [];
+    children!.add(contentType);
+  }
+
+  bool getToggleDefault() {
+    return true;
   }
 }
+
+// @JsonSerializable()
+// class ContentData {
+//   ContentData({required this.type, required this.data});
+
+//   String? type;
+//   dynamic data;
+
+//   factory ContentData.fromJson(Map<String, dynamic> json) =>
+//       _$ContentDataFromJson(json);
+
+//   Map<String, dynamic> toJson() => _$ContentDataToJson(this);
+
+//   Map<String, ContentData> getComponentData() {
+//     return data as Map<String, ContentData>;
+//   }
+
+//   String getTextData() {
+//     return data as String;
+//   }
+
+//   void setTextData(String val) {
+//     data = val;
+//   }
+
+//   void setComponentData(Map<String, ContentData> val) {
+//     data = val;
+//   }
+
+//   ContentData cloneDeep() {
+//     return ContentData(type: type, data: jsonDecode(jsonEncode(data)));
+//   }
+// }

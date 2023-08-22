@@ -24,7 +24,7 @@ class ContentTypeCubit extends Cubit<ContentTypeState> {
       : super(initialState);
 
   void loadPage({int page = 1, CacheOptions? options}) async {
-    final pageIsLoaded = state.cacheByPage.keys.contains(page);
+    final pageIsLoaded = state.cacheByPage.keys.contains("$page");
 
     if (pageIsLoaded && options?.reload == false) {
       return;

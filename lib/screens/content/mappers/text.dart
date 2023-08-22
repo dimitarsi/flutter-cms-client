@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 import '../../../service/models/content.dart';
 
-Widget getTextField(ContentType e, {Content? content}) => TextFormField(
-      decoration: InputDecoration(hintText: e.name),
-      initialValue: content?.data ?? "",
-      onSaved: (val) {
-        if (content != null) {
-          content.data = val;
-        }
-      },
-    );
+Widget getTextField(ContentType e, {dynamic data}) {
+  return TextFormField(
+    decoration: InputDecoration(hintText: e.name),
+    initialValue: "",
+    onSaved: (String? val) {
+      // if (data != null && val != null) {
+      //   data.setTextData(val);
+      // }
+    },
+  );
+}

@@ -21,13 +21,15 @@ class ContentTypeInputs extends StatelessWidget {
   void Function(ContentType)? onSelectType;
   void Function(String path)? onNavigateTo;
 
-  List<Widget> getChildren(ContentType contentType, {ContentType? parent}) {
-    final input = getInputByType(contentType!, parent: parent);
+  List<Widget> getChildren(ContentType contentType,
+      {ContentType? parent, int depth = 1}) {
+    final input = getInputByType(contentType!, parent: parent, depth: depth);
 
     List<Widget> nestedChildren = contentType.freezed
         ? []
         : (contentType.children ?? []).fold([], (value, e) {
-            final nextLevel = getChildren(e, parent: contentType);
+            final nextLevel =
+                getChildren(e, parent: contentType, depth: depth + 1);
             value.addAll(nextLevel);
             return value;
           });
@@ -36,10 +38,9 @@ class ContentTypeInputs extends StatelessWidget {
 
     final shouldAddGroup = parent == null &&
         contentType.children!
-                .where((element) =>
-                    element.type == "composite" || element.type == "root")
-                .length >
-            0;
+            .where((element) =>
+                element.type == "composite" || element.type == "root")
+            .isNotEmpty;
 
     add() {
       if (newInputName.isEmpty) {
@@ -68,7 +69,7 @@ class ContentTypeInputs extends StatelessWidget {
         },
         onEditingComplete: add);
 
-    newInput = shouldAddGroup == false
+    newInput = parent != null
         ? Padding(padding: EdgeInsets.only(left: 15), child: newInput)
         : newInput;
 
@@ -99,7 +100,8 @@ class ContentTypeInputs extends StatelessWidget {
     );
   }
 
-  Widget getInputByType(ContentType contentType, {ContentType? parent}) {
+  Widget getInputByType(ContentType contentType,
+      {ContentType? parent, required int depth}) {
     final changeTypeButton = IconButton(
         onPressed: () {
           onSelectType?.call(contentType);
@@ -128,6 +130,7 @@ class ContentTypeInputs extends StatelessWidget {
 
     Widget input = TextFormField(
       // enabled: contentType.freezed != true,
+      decoration: InputDecoration(hintText: "Text Depth $depth"),
       initialValue: contentType.name,
       onChanged: (value) {
         contentType.slug = slugify(value);
@@ -135,8 +138,8 @@ class ContentTypeInputs extends StatelessWidget {
       },
     );
 
-    input =
-        wrapInPadding(contentType: contentType, child: input, parent: parent);
+    input = wrapInPadding(
+        contentType: contentType, child: input, parent: parent, depth: depth);
 
     return Row(
       children: [
@@ -148,13 +151,12 @@ class ContentTypeInputs extends StatelessWidget {
     );
   }
 
-  Widget wrapInPadding({
-    required ContentType contentType,
-    ContentType? parent,
-    required Widget child,
-  }) {
-    if (allowedGroupTypes.contains(contentType.type) == false &&
-        parent != null) {
+  Widget wrapInPadding(
+      {required ContentType contentType,
+      ContentType? parent,
+      required Widget child,
+      required int depth}) {
+    if (allowedGroupTypes.contains(contentType.type) == false && depth > 2) {
       return Padding(
         padding: EdgeInsets.only(left: 15),
         child: child,

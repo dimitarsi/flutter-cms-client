@@ -118,11 +118,11 @@ class _FieldSettingsState extends State<FieldSettingsModal> {
 
     return DropdownMenu<String>(
       label: Text("References"),
-      initialSelection: widget.element.data?['refType'] ?? '',
+      initialSelection: '', // widget.element.data?['refType'] ?? '',
       dropdownMenuEntries: widget.items,
       onSelected: (String? value) {
-        widget.element.data ??= {};
-        widget.element.data!['refType'] = value ?? '';
+        // widget.element.data ??= {};
+        // widget.element.data!['refType'] = value ?? '';
         widget.onSelected?.call();
       },
     );

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../service/models/content.dart';
 
-Widget getNumberField(ContentType e, {Content? content}) => TextFormField(
-    initialValue: content?.data ?? "",
+Widget getNumberField(ContentType e, {dynamic data}) => TextFormField(
+    initialValue: "",
     validator: (value) {
       final res = double.tryParse(value ?? "");
 
@@ -15,7 +15,5 @@ Widget getNumberField(ContentType e, {Content? content}) => TextFormField(
     },
     decoration: InputDecoration(label: Text(e.name)),
     onSaved: (val) {
-      if (content != null) {
-        content.data = val;
-      }
+      data[e.slug] = val;
     });

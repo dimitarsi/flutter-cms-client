@@ -54,9 +54,9 @@ class _ContentModalCreateState extends State<ContentModalCreate> {
     }
 
     final items = contentTypes!.where((element) {
-      return element.name != null && element.id != null;
+      return element.id != null;
     }).map((element) {
-      return DropdownMenuEntry(label: element.name!, value: element.id);
+      return DropdownMenuEntry(label: element.name, value: element.id);
     }).toList();
 
     return items;
@@ -130,7 +130,7 @@ class _ContentModalCreateState extends State<ContentModalCreate> {
     }
 
     final data = Content(
-      data: {},
+      data: null,
       name: title,
       slug: slug,
       type: type,
